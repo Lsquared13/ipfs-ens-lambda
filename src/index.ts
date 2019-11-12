@@ -1,21 +1,15 @@
 'use strict';
+import { 
+    DeployEns, DeployIpfs, DeployStart, 
+    TokenCheck, TokenFetch
+} from './handlers';
 
-exports.startDeployHandler = async(event:any) => {
-    console.log("startDeployHandler request: "+JSON.stringify(event));
-    console.log("NOT IMPLEMENTED");
-}
+exports.tokenFetchHandler = TokenFetch;
 
-exports.ipfsDeployHandler = async(event:any) => {
-    console.log("ipfsDeployHandler request: "+JSON.stringify(event));
-    console.log("NOT IMPLEMENTED");
-}
+exports.tokenCheckHandler = TokenCheck;
 
-exports.ensDeployHandler = async(event:any) => {
-    console.log("ensDeployHandler request: "+JSON.stringify(event));
-    console.log("NOT IMPLEMENTED");
-}
+exports.deployStartHandler = DeployStart
 
-exports.confirmDeployHandler = async(event:any) => {
-    console.log("confirmDeployHandler request: "+JSON.stringify(event));
-    console.log("NOT IMPLEMENTED");
-}
+exports.deployIpfsHandler = DeployIpfs;
+
+exports.deployEnsHandler = DeployEns;

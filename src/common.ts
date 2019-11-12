@@ -46,3 +46,18 @@ export async function callAndLog<ReturnType = any>(stage:string, promise:Promise
         throw err;
     }
 }
+
+/**
+ * Null means that the value has all of the keys; a return string
+ * is an error message letting the user know which keys are missing.
+ * 
+ * @param val 
+ * @param keys 
+ */
+export function missingKeys(val:object, keys:string[]):string|null {
+    const valKeys = new Set(Object.keys(val));
+    const missingKeys = keys.filter(key => !valKeys.has(key));
+    return missingKeys.length === 0 ?
+        null :
+        `The provided value was missing these keys: ${missingKeys.join(', ')}`
+}
