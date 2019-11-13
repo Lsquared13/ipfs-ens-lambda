@@ -11,7 +11,7 @@ export const Dynamo = {
   updateDeployItem
 }
 
-export default DynamoDB;
+export default Dynamo;
 
 /**
  * Given a deploySeed, create a record for it in the
