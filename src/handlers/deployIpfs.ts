@@ -3,8 +3,8 @@ import { ResponseOptions } from '@eximchain/dappbot-types/spec/responses';
 import { CodePipelineEvent } from '../types/lambda-event-types';
 
 const DeployIpfs = async (event: CodePipelineEvent) => {
-    console.log("ipfsDeployHandler request: " + JSON.stringify(event));
-    console.log("NOT IMPLEMENTED");
+    console.log("DeployIpfs request: " + JSON.stringify(event));
+    console.warn("NOT IMPLEMENTED");
     let responseOpts: ResponseOptions = {}
     let pipelineJob = event['CodePipeline.job'];
     let { data, id } = pipelineJob;

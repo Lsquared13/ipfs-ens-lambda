@@ -3,8 +3,7 @@ import { S3, Dynamo, CodePipeline } from '../services';
 import { userErrorResponse, unexpectedErrorResponse, successResponse } from "@eximchain/dappbot-types/spec/responses";
 
 const DeployStart = async (event: APIGatewayEvent) => {
-  console.log("startDeployHandler request: " + JSON.stringify(event));
-  console.log("NOT IMPLEMENTED");
+  console.log("DeployStart request: " + JSON.stringify(event));
 
   // Validate arguments
   const body = event.body ? JSON.parse(event.body) : {};

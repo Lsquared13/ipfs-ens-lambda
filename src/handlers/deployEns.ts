@@ -1,8 +1,8 @@
 import { SQSEvent } from "../types/lambda-event-types/";
 
 const DeployEns = async(event:SQSEvent) => {
-  console.log("ensDeployHandler request: "+JSON.stringify(event));
-  console.log("NOT IMPLEMENTED");
+  console.log("DeployEns request: "+JSON.stringify(event));
+  console.warn("NOT IMPLEMENTED");
 
   // TODO: Process each record
   event.Records.forEach((record) => {
