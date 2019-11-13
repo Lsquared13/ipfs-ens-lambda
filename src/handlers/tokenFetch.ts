@@ -1,9 +1,7 @@
-import GitHub from '../services/github';
-import { githubClientId } from '../env';
+import { createOauthFxn } from '../services/github';
 import { 
   isHttpMethod, userErrorResponse, unexpectedErrorResponse, successResponse
 } from '@eximchain/dappbot-types/spec/responses';
-import { missingKeys } from '../common';
 
 const getAccessToken = async(event:any) => {
   // TODO: Plug in this API call: https://developer.github.com/apps/building-oauth-apps/authorizing-oauth-apps/#2-users-are-redirected-back-to-your-site-by-github
@@ -15,10 +13,14 @@ const getAccessToken = async(event:any) => {
   }
   if (method === 'OPTIONS') return successResponse(undefined);
   const body = event.body = event.body ? JSON.parse(event.body) : {};
-  if (!body.code) {
+  if (!body.code || typeof body.code !== 'string') {
     return userErrorResponse({ message: 'Request body must include a "code" key from OAuth redirect.'})
   }
-
+  const githubAuth = await createOauthFxn(body.code);
+  const accessToken = await githubAuth({ type: 'token' })
+  return successResponse({
+    accessToken
+  })
 }
 
 interface AuthCode {
