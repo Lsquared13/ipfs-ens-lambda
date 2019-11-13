@@ -1,5 +1,5 @@
 import {
-  AWS, pipelineRoleArn, artifactBucket, deploySeedBucket, codebuildBuildId,
+  AWS, pipelineRoleArn, deploySeedBucket, codebuildBuildId,
   deployIpfsFxnName
 } from '../env';
 import { CreatePipelineInput } from 'aws-sdk/clients/codepipeline';
@@ -36,8 +36,8 @@ function promiseCreatePipeline(params: CreatePipelineInput) {
  * @param seed 
  * @param oauthGithubToken 
  */
-function promiseCreateDeployPipeline(pipelineName: string, seed: DeploySeed, oauthGithubToken: string) {
-  return promiseCreatePipeline(DeployPipelineParams(pipelineName, seed, oauthGithubToken))
+function promiseCreateDeployPipeline(pipelineName: string, seed: DeploySeed, oauthGithubToken: string, artifactBucket:string) {
+  return promiseCreatePipeline(DeployPipelineParams(pipelineName, seed, oauthGithubToken, artifactBucket))
 }
 
 function promiseRunPipeline(pipelineName: string) {
@@ -76,7 +76,12 @@ function promiseFailJob(jobId: string, err: any) {
   return addAwsPromiseRetries(() => codepipeline.putJobFailureResult(params).promise(), maxRetries);
 }
 
-function DeployPipelineParams(pipelineName: string, seed: DeploySeed, oauthGithubToken: string): CreatePipelineInput {
+function DeployPipelineParams(
+  pipelineName: string, 
+  seed: DeploySeed, 
+  oauthGithubToken: string,
+  artifactBucket: string
+): CreatePipelineInput {
   const { ensName, owner, repo, branch } = seed;
   return {
     pipeline: {

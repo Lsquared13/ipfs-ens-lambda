@@ -1,5 +1,9 @@
 import { keysAreStrings } from '../validators';
 
+/**
+ * Barebones arguments required to create a deployment.
+ * Sent to us by client, persisted in S3.
+ */
 export interface DeploySeed {
   buildDir: string
   owner: string
@@ -20,4 +24,13 @@ export function newDeploySeed(){
     branch: '',
     ensName: ''
   }
+}
+
+/**
+ * Complete data representing a deployment, persisted
+ * in our DynamoDB records.
+ */
+export interface DeployItem extends DeploySeed {
+  createdAt: string
+  updatedAt: string
 }

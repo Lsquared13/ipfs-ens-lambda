@@ -15,11 +15,11 @@ export const githubClientId = process.env.GITHUB_CLIENT_ID as string;
 export const githubClientSecret = process.env.GITHUB_CLIENT_SECRET as string;
 
 // CodePipeline variables
-export const artifactBucket = process.env.ARTIFACT_BUCKET as string;
 export const deploySeedBucket = process.env.DEPLOY_SEED_BUCKET as string;
 export const pipelineRoleArn = process.env.PIPELINE_ROLE_ARN as string;
 export const codebuildBuildId = process.env.CODEBUILD_BUILD_ID as string;
 export const deployIpfsFxnName = process.env.SERVICES_LAMBDA_FUNCTION as string;
+export const deployTableName = process.env.DEPLOY_TABLE_NAME as string;
 
 NoConfigAWS.config.update({region: awsRegion});
 

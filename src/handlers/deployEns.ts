@@ -1,6 +1,6 @@
-import { APIGatewayEvent } from "../types/lambda-event-types/api-gateway-event-type";
+import { SQSEvent } from "../types/lambda-event-types/";
 
-const DeployEns = async(event:APIGatewayEvent) => {
+const DeployEns = async(event:SQSEvent) => {
   console.log("ensDeployHandler request: "+JSON.stringify(event));
   console.log("NOT IMPLEMENTED");
 

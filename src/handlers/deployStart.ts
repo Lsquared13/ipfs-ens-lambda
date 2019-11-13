@@ -1,8 +1,9 @@
 import { isDeploySeed, newDeploySeed, APIGatewayEvent } from "../types";
-import { userErrorResponse } from "@eximchain/dappbot-types/spec/responses";
+import { S3, Dynamo, CodePipeline } from '../services';
+import { userErrorResponse, unexpectedErrorResponse, successResponse } from "@eximchain/dappbot-types/spec/responses";
 
-const DeployStart = async(event:APIGatewayEvent) => {
-  console.log("startDeployHandler request: "+JSON.stringify(event));
+const DeployStart = async (event: APIGatewayEvent) => {
+  console.log("startDeployHandler request: " + JSON.stringify(event));
   console.log("NOT IMPLEMENTED");
 
   // Validate arguments
@@ -11,14 +12,27 @@ const DeployStart = async(event:APIGatewayEvent) => {
     message: `Please include all of the required keys: ${Object.keys(newDeploySeed()).join(', ')}`
   })
 
-  // TODO: Initialize any per-deploy state
+  try {
+    // Initialize DeployItem in DynamoDB
+    const newItem = await Dynamo.initDeployItem(body);
 
+    // Initialize seed into s3 deploySeed bucket
+    const savedSeed = await S3.putDeploySeed(body)
 
-  // TODO: Write the ENS name & build directory
-  // into the S3 bucket
+    // Create new CodePipeline's artifact bucket
+    const artifactBucketname = 'placeholder';
+    const createdBucket = await S3.createBucket(artifactBucketname);
 
-  // TODO: Create the CodePipeline with GitHub Source
-  // based on the provided owner/repo/branch.
+    // Create the CodePipeline with GitHub Source
+    // based on the provided owner/repo/branch.
+    const pipelineName = 'placeholder';
+    const oauthToken = event.headers['Authorization']
+    const createdPipeline = await CodePipeline.createDeploy(pipelineName, body, oauthToken, artifactBucketname)
+    return successResponse({ newItem, savedSeed, createdBucket, createdPipeline });
+  } catch (err) {
+    return unexpectedErrorResponse(err);
+  }
+
 }
 
 export default DeployStart;

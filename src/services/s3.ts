@@ -7,6 +7,14 @@ import { DeploySeed } from '../types';
 
 const s3 = new AWS.S3({apiVersion: '2006-03-01'});
 
+export const S3 = {
+  downloadArtifact, putDeploySeed,
+  getObject: promiseGetS3Object,
+  createBucket: promiseCreateS3Bucket
+}
+
+export default S3;
+
 function promiseGetS3Object(bucketName:string, objectKey:string) {
   let maxRetries = 5;
   const params = {
@@ -49,7 +57,11 @@ async function putDeploySeed(seed:DeploySeed) {
   return addAwsPromiseRetries(() => s3.putObject(params).promise(), maxRetries);
 }
 
-export default {
-  downloadArtifact, putDeploySeed,
-  getObject: promiseGetS3Object,
+function promiseCreateS3Bucket(bucketName:string) {
+  let maxRetries = 5;
+  let params = {
+      Bucket: bucketName,
+      ACL: 'public-read'
+  };
+  return addAwsPromiseRetries(() => s3.createBucket(params).promise(), maxRetries);
 }
