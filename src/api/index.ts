@@ -1,16 +1,9 @@
-//MOCK 
-// TODO: Implement
+import ens from "./ens"
+import ipfs from "./ipfs"
 
 export const Api ={
-    ens : {},
-    ipfs: {
-        deploy:(folder:any)=>{return true},
-        confirmDeploy:(hash: string)=>{return true},
-        zip:{
-            hash:()=>{return "0xDEADBEEF"},
-            compress:()=>{return true}
-        }
-    }
+    ens,
+    ipfs
 }
 
 export default Api
