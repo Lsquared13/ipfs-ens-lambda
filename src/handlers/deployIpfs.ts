@@ -1,9 +1,6 @@
-import { IPFS, CodePipeline } from '../services';
-import {
-    ResponseOptions, isHttpMethod, userErrorResponse, successResponse,
-    unexpectedErrorResponse
-} from '@eximchain/dappbot-types/spec/responses';
-import { APIGatewayEvent, CodePipelineEvent } from '../types/lambda-event-types';
+import { CodePipeline } from '../services';
+import { ResponseOptions } from '@eximchain/dappbot-types/spec/responses';
+import { CodePipelineEvent } from '../types/lambda-event-types';
 
 const DeployIpfs = async (event: CodePipelineEvent) => {
     console.log("ipfsDeployHandler request: " + JSON.stringify(event));

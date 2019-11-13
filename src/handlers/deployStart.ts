@@ -1,5 +1,4 @@
-import { APIGatewayEvent } from "../types/lambda-event-types/api-gateway-event-type";
-import { isDeploySeed, newDeploySeed } from "../types";
+import { isDeploySeed, newDeploySeed, APIGatewayEvent } from "../types";
 import { userErrorResponse } from "@eximchain/dappbot-types/spec/responses";
 
 const DeployStart = async(event:APIGatewayEvent) => {
