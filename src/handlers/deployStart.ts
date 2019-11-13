@@ -23,7 +23,7 @@ const DeployStart = async (event: APIGatewayEvent) => {
     const artifactBucketname = 'placeholder';
     const createdBucket = await S3.createBucket(artifactBucketname);
 
-    // Create the CodePipeline with GitHub Source
+    // Create the CodePipeline with GitHub & S3 Source
     // based on the provided owner/repo/branch.
     const pipelineName = 'placeholder';
     const oauthToken = event.headers['Authorization']
