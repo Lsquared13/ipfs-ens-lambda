@@ -1,4 +1,4 @@
-import { createOauthFxn } from '../services/github';
+import { fetchOauthAccessToken } from '../services/github';
 import { 
   isHttpMethod, userErrorResponse, unexpectedErrorResponse, successResponse
 } from '@eximchain/dappbot-types/spec/responses';
@@ -19,10 +19,9 @@ const getAccessToken = async(event:any) => {
   if (!body.code || typeof body.code !== 'string') {
     return userErrorResponse({ message: 'Request body must include a "code" key from OAuth redirect.'})
   }
-  const githubAuth = await createOauthFxn(body.code);
-  const accessToken = await githubAuth({ type: 'token' })
+  const accessToken = await fetchOauthAccessToken(body.code);
   return successResponse({
-    accessToken
+    ...accessToken
   })
 }
 
