@@ -3,6 +3,7 @@
   "exclude": ["node_modules", "build"],
   "compileOnSave": true,
   "compilerOptions": {
+      "lib":["es7"],
       "target": "es5",            // Compatible with older browsers
       "module": "commonjs",            // Compatible with both Node.js and browser
       "moduleResolution": "node", // Tell tsc to look in node_modules for modules
@@ -14,7 +15,6 @@
       "outDir": "build",
       "sourceRoot": "src",
       "allowSyntheticDefaultImports": true,
-      "esModuleInterop": true,
-      "typeRoots": ["./types", "./node_modules/@types"]
+      "esModuleInterop": true
     }
 }

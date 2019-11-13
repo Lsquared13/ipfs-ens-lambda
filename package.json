@@ -19,8 +19,12 @@
   "homepage": "https://github.com/Eximchain/ipfs-ens-lambda#readme",
   "dependencies": {
     "@eximchain/dappbot-types": "^1.7.2",
+    "@octokit/auth": "^1.1.1",
+    "@octokit/rest": "^16.35.0",
     "@types/aws-sdk": "^2.7.0",
-    "@types/node": "^12.0.2"
+    "@types/node": "^12.0.2",
+    "@types/request-promise-native": "^1.0.17",
+    "request-promise-native": "^1.0.8"
   },
   "devDependencies": {}
 }
