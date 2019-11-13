@@ -10,13 +10,17 @@ const DeployIpfs = async (event: CodePipelineEvent) => {
     let { data, id } = pipelineJob;
     const { actionConfiguration, inputArtifacts } = data;
     try {
-        // responseOpts.isCreate = true;
+        // TODO: Get zipped build's S3 location from `inputArtifacts`
+        
         //TODO: Compress zip
         // let compressed = IPFS.zip.compress();
+
         //TODO: Get hash for compressed zip
         // let hash = IPFS.zip.hash();
+
         //TODO: Upload compressed zip
         // let upload = IPFS.deploy(compressed);
+        
         //TODO: verify upload before returning
         // let result = await IPFS.confirmDeploy(hash);
         return await CodePipeline.completeJob(id);
