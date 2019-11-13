@@ -16,8 +16,10 @@ const DeployEns = async(event:SQSEvent) => {
     // the receipt/nonce/timestamp in state, write a delayed 
     // retry message, & exit.
 
-    // TODO: If last transaction is complete, write that into
-    // state and then delete the associated CodePipeline.
+    // TODO: If last transaction is complete:
+    //   1. Write that into state 
+    //   2. Delete the associated CodePipeline.
+    //   3. Delete the associated S3 artifact bucket.
   })
 }
 
