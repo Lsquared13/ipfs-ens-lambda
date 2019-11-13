@@ -2,7 +2,7 @@ import { fetchUserAccessToken } from '../services/github';
 import { 
   isHttpMethod, userErrorResponse, unexpectedErrorResponse, successResponse
 } from '@eximchain/dappbot-types/spec/responses';
-import { APIGatewayEvent } from '../types/lambda-types';
+import { APIGatewayEvent } from '../types/lambda-event-types';
 
 /**
  * This API Gateway method handler should be called automatically

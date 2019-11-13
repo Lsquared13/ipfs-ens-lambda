@@ -1,8 +1,9 @@
 // @ts-ignore Alas, there are no published bindings for node-zip.
 import zip from 'node-zip';
-import { S3ArtifactLocation, Credentials } from "../types/lambda-types";
-import { AWS } from '../env';
+import { S3ArtifactLocation, Credentials } from "../types/lambda-event-types";
+import { AWS, deploySeedBucket } from '../env';
 import { addAwsPromiseRetries } from "../common";
+import { DeploySeed } from '../types';
 
 const s3 = new AWS.S3({apiVersion: '2006-03-01'});
 
@@ -37,7 +38,18 @@ async function downloadArtifact(artifactLocation:S3ArtifactLocation, artifactCre
   return zipArtifact;
 }
 
+async function putDeploySeed(seed:DeploySeed) {
+  let maxRetries = 5;
+  let params = {
+      Bucket : deploySeedBucket,
+      ACL: 'private',
+      Key: `${seed.ensName}/dappseed.json`,
+      Body: JSON.stringify(seed, null, 2)
+  };
+  return addAwsPromiseRetries(() => s3.putObject(params).promise(), maxRetries);
+}
+
 export default {
-  downloadArtifact,
-  getObject: promiseGetS3Object
+  downloadArtifact, putDeploySeed,
+  getObject: promiseGetS3Object,
 }

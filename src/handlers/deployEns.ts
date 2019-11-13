@@ -1,4 +1,4 @@
-import { APIGatewayEvent } from "../types/lambda-types/api-gateway-event-type";
+import { APIGatewayEvent } from "../types/lambda-event-types/api-gateway-event-type";
 
 const DeployEns = async(event:APIGatewayEvent) => {
   console.log("ensDeployHandler request: "+JSON.stringify(event));
