@@ -3,7 +3,7 @@ import {
   ResponseOptions, isHttpMethod, userErrorResponse, successResponse, 
   unexpectedErrorResponse
 } from '@eximchain/dappbot-types/spec/responses';
-import { APIGatewayEvent } from '../gateway-event-type';
+import { APIGatewayEvent } from '../types/lambda-types/api-gateway-event-type';
 
 const DeployIpfs = async(event:APIGatewayEvent) => {
   console.log("ipfsDeployHandler request: "+JSON.stringify(event));

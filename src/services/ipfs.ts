@@ -1,4 +1,3 @@
-// @ts-ignore
 import IPFSClient from 'ipfs-http-client';
 import { operationNotImplemented } from '../common';
 
