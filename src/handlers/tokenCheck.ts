@@ -1,4 +1,4 @@
-import { makeAppGitHub } from '../services/github';
+import { makeAppGitHub, makeUserGitHub } from '../services/github';
 import { githubClientId } from '../env';
 
 // My model for a simple token-based Lambda Authorizer function
