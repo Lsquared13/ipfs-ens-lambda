@@ -24,6 +24,7 @@
     "@types/aws-sdk": "^2.7.0",
     "@types/node": "^12.0.2",
     "@types/request-promise-native": "^1.0.17",
+    "ipfs-http-client": "^39.0.2",
     "request-promise-native": "^1.0.8"
   },
   "devDependencies": {}

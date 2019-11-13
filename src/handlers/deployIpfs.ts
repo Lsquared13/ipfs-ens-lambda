@@ -20,16 +20,16 @@ const DeployIpfs = async(event:APIGatewayEvent) => {
     switch(method) {
         case 'POST':
             try {
-                responseOpts.isCreate = true;
+                // responseOpts.isCreate = true;
                 //TODO: Compress zip
-                let compressed = IPFS.zip.compress();
+                // let compressed = IPFS.zip.compress();
                 //TODO: Get hash for compressed zip
-                let hash = IPFS.zip.hash();
+                // let hash = IPFS.zip.hash();
                 //TODO: Upload compressed zip
-                let upload = IPFS.deploy(compressed);
+                // let upload = IPFS.deploy(compressed);
                 //TODO: verify upload before returning
-                let result = await IPFS.confirmDeploy(hash);
-                return successResponse({hash}, responseOpts);
+                // let result = await IPFS.confirmDeploy(hash);
+                return successResponse({hash:'D3ADB33F'}, responseOpts);
             } catch (err) {
                 return unexpectedErrorResponse(err);
             }

@@ -25,7 +25,6 @@ const TokenCheck = async (event: APIGatewayAuthorizerEvent, content: any, callba
     callback("Error: Invalid Token");
   }
 }
-
 interface IAMStatement {
   Action: string
   Effect: string
