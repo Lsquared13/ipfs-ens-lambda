@@ -1,6 +1,5 @@
 import GitHub from '../services/github';
 import { githubClientId } from '../env';
-import { APIGatewayEvent } from '../gateway-event-type';
 
 // My model for a simple token-based Lambda Authorizer function
 // is based off of these docs: https://github.com/awsdocs/amazon-api-gateway-developer-guide/blob/master/doc_source/apigateway-use-lambda-authorizer.md#example-create-a-token-based-lambda-authorizer-function
