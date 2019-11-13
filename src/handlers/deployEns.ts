@@ -17,7 +17,7 @@ const DeployEns = async(event:SQSEvent) => {
     // retry message, & exit.
 
     // TODO: If last transaction is complete, write that into
-    // state and then exit.
+    // state and then delete the associated CodePipeline.
   })
 }
 
