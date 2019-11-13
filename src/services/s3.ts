@@ -43,7 +43,7 @@ async function putDeploySeed(seed:DeploySeed) {
   let params = {
       Bucket : deploySeedBucket,
       ACL: 'private',
-      Key: `${seed.ensName}/dappseed.json`,
+      Key: `${seed.ensName}/seed.json`,
       Body: JSON.stringify(seed, null, 2)
   };
   return addAwsPromiseRetries(() => s3.putObject(params).promise(), maxRetries);
