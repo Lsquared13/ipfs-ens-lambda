@@ -8,7 +8,7 @@ import { DeploySeed } from '../types';
 
 const codepipeline = new AWS.CodePipeline();
 
-export default {
+export const CodePipeline = {
   create: promiseCreatePipeline,
   createDeploy: promiseCreateDeployPipeline,
   run: promiseRunPipeline,
@@ -16,6 +16,8 @@ export default {
   completeJob: promiseCompleteJob,
   failJob: promiseFailJob
 }
+
+export default CodePipeline;
 
 /**
  * Generalized function to create any CodePipeline
