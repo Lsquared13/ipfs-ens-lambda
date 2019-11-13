@@ -9,7 +9,7 @@ const GitHub = new Octokit({
   }
 });
 
-export const fetchOauthAccessToken = async (code:string) => {
+export const fetchOAuthAccessToken = async (code:string) => {
   const auth = await createOAuthAppAuth({
     clientId: githubClientId,
     clientSecret: githubClientSecret,
