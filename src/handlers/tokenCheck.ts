@@ -1,4 +1,4 @@
-import GitHub from '../services/github';
+import { makeAppGitHub } from '../services/github';
 import { githubClientId } from '../env';
 
 // My model for a simple token-based Lambda Authorizer function
@@ -11,6 +11,7 @@ const TokenCheck = async (event: APIGatewayAuthorizerEvent, content: any, callba
   const token = event.authorizationToken as string;
   try {
     // If this await resolves, the token is valid.
+    const GitHub = makeAppGitHub();
     const tokenInfo = await GitHub.apps.checkToken({ access_token: token, client_id: githubClientId })
     callback(null, generatePolicy('user', 'Allow', event.methodArn, {
       // Including this ensures that the authorized handler (deployStart)

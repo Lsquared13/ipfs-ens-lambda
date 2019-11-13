@@ -1,4 +1,4 @@
-import { fetchOAuthAccessToken } from '../services/github';
+import { fetchUserAccessToken } from '../services/github';
 import { 
   isHttpMethod, userErrorResponse, unexpectedErrorResponse, successResponse
 } from '@eximchain/dappbot-types/spec/responses';
@@ -19,7 +19,7 @@ const getAccessToken = async(event:any) => {
   if (!body.code || typeof body.code !== 'string') {
     return userErrorResponse({ message: 'Request body must include a "code" key from OAuth redirect.'})
   }
-  const accessToken = await fetchOAuthAccessToken(body.code);
+  const accessToken = await fetchUserAccessToken(body.code);
   return successResponse({
     ...accessToken
   })
