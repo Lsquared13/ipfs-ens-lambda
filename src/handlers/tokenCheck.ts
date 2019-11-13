@@ -10,8 +10,7 @@ interface APIGatewayAuthorizerEvent {
 const TokenCheck = async (event: APIGatewayAuthorizerEvent, content: any, callback: Function) => {
   const token = event.authorizationToken as string;
   try {
-    // Assumption is that awaiting a 404 (which is what happens when token is invalid)
-    // will also throw an error, so this try-catch handles the logic.
+    // If this await resolves, the token is valid.
     const tokenInfo = await GitHub.apps.checkToken({ access_token: token, client_id: githubClientId })
     callback(null, generatePolicy('user', 'Allow', event.methodArn, {
       // Including this ensures that the authorized handler (deployStart)
