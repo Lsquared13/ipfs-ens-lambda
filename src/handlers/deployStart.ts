@@ -1,6 +1,6 @@
 import uuid from 'uuid/v4';
 import { isDeploySeed, newDeploySeed, APIGatewayEvent } from "../types";
-import { S3, Dynamo, CodePipeline } from '../services';
+import { S3, DynamoDB, CodePipeline } from '../services';
 import { userErrorResponse, unexpectedErrorResponse, successResponse } from "@eximchain/dappbot-types/spec/responses";
 
 const DeployStart = async (event: APIGatewayEvent) => {
@@ -15,7 +15,7 @@ const DeployStart = async (event: APIGatewayEvent) => {
   try {
     // Initialize DeployItem in DynamoDB
     const deploymentSuffix = uuid();
-    const newItem = await Dynamo.initDeployItem(body);
+    const newItem = await DynamoDB.initDeployItem(body);
 
     // Initialize seed into s3 deploySeed bucket
     const savedSeed = await S3.putDeploySeed(body)

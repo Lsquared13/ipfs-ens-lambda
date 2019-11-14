@@ -5,13 +5,13 @@ import { PutItemInputAttributeMap } from 'aws-sdk/clients/dynamodb';
 
 const ddb = new AWS.DynamoDB({apiVersion: '2012-08-10'});
 
-export const Dynamo = {
+export const DynamoDB = {
   initDeployItem,
   getDeployItem,
   updateDeployItem
 }
 
-export default Dynamo;
+export default DynamoDB;
 
 /**
  * Given a deploySeed, create a record for it in the
