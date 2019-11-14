@@ -82,7 +82,7 @@ function DeployPipelineParams(
   oauthGithubToken: string,
   artifactBucket: string
 ): CreatePipelineInput {
-  const { ensName, owner, repo, branch } = seed;
+  const { ensName, owner, repo, branch, buildDir } = seed;
   return {
     pipeline: {
       name: pipelineName,
@@ -169,7 +169,16 @@ function DeployPipelineParams(
                 }
               ],
               "configuration": {
-                "ProjectName": codebuildBuildId
+                "ProjectName": codebuildBuildId,
+                // TODO: Define PACKAGE_DIR
+                "EnvironmentVariables": JSON.stringify(
+                  [
+                    {
+                      name: 'BUILD_DIR',
+                      value: buildDir
+                    }
+                  ]
+                )
               },
               "runOrder": 1
             }
