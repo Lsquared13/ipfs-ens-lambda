@@ -26,7 +26,10 @@
     "@types/request-promise-native": "^1.0.17",
     "ipfs-http-client": "^39.0.2",
     "node-zip": "^1.1.1",
-    "request-promise-native": "^1.0.8"
+    "request-promise-native": "^1.0.8",
+    "web3": "^1.2.3"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "@types/web3": "^1.2.2"
+  }
 }
