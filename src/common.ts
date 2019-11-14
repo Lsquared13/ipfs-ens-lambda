@@ -46,3 +46,10 @@ export async function callAndLog<ReturnType = any>(stage:string, promise:Promise
         throw err;
     }
 }
+
+export function operationNotImplemented(){
+    console.log('Warning: Operation Not Implemented')
+    return new Promise((resolve, reject)=>{
+        resolve(false);
+      });
+}

@@ -1,6 +1,6 @@
 {
   "include": ["./src/**/*"],
-  "exclude": ["node_modules", "build"],
+  "exclude": ["node_modules", "build", "./types"],
   "compileOnSave": true,
   "compilerOptions": {
       "lib":["es7"],
@@ -15,6 +15,7 @@
       "outDir": "build",
       "sourceRoot": "src",
       "allowSyntheticDefaultImports": true,
-      "esModuleInterop": true
+      "esModuleInterop": true,
+      "typeRoots" : ["./types", "./node_modules/@types"]
     }
 }

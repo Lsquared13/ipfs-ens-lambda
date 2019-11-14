@@ -1,12 +1,7 @@
 import { makeAppGitHub, makeUserGitHub } from '../services/github';
+import { APIGatewayAuthorizerEvent } from '../types';
 import { githubClientId } from '../env';
 
-// My model for a simple token-based Lambda Authorizer function
-// is based off of these docs: https://github.com/awsdocs/amazon-api-gateway-developer-guide/blob/master/doc_source/apigateway-use-lambda-authorizer.md#example-create-a-token-based-lambda-authorizer-function
-interface APIGatewayAuthorizerEvent {
-  authorizationToken: string
-  methodArn: string
-}
 const TokenCheck = async (event: APIGatewayAuthorizerEvent, content: any, callback: Function) => {
   const token = event.authorizationToken as string;
   try {
@@ -25,7 +20,6 @@ const TokenCheck = async (event: APIGatewayAuthorizerEvent, content: any, callba
     callback("Error: Invalid Token");
   }
 }
-
 interface IAMStatement {
   Action: string
   Effect: string

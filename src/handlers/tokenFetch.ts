@@ -2,6 +2,7 @@ import { fetchUserAccessToken } from '../services/github';
 import { 
   isHttpMethod, userErrorResponse, unexpectedErrorResponse, successResponse
 } from '@eximchain/dappbot-types/spec/responses';
+import { APIGatewayEvent } from '../types/lambda-event-types';
 
 /**
  * This API Gateway method handler should be called automatically
@@ -9,7 +10,7 @@ import {
  * value should be included in body.
  * @param event 
  */
-const getAccessToken = async(event:any) => {
+const getAccessToken = async(event:APIGatewayEvent) => {
   let method = event.httpMethod.toUpperCase();
   if (!isHttpMethod(method)) {
     return userErrorResponse({ message: `Unrecognized HttpMethod: ${method}`})

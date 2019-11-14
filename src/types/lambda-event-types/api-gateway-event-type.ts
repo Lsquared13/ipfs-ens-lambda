@@ -2,6 +2,14 @@ export interface AuthResponseContext {
   [name: string]: any;
 }
 
+// My model for a simple token-based Lambda Authorizer function
+// is based off of these docs: https://github.com/awsdocs/amazon-api-gateway-developer-guide/blob/master/doc_source/apigateway-use-lambda-authorizer.md#example-create-a-token-based-lambda-authorizer-function
+// which described an object like this one below.
+export interface APIGatewayAuthorizerEvent {
+  authorizationToken: string
+  methodArn: string
+}
+
 // API Gateway "event" request context
 export interface APIGatewayEventRequestContext {
   accountId: string;
