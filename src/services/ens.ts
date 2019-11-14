@@ -1,14 +1,28 @@
-import web3 from 'web3';
-export const ENS = {};
+// @ts-ignore No types available yet for ethereum-ens
+import ENS from 'ethereum-ens';
+import { web3Provider } from './web3';
 
-// Address and ABI taken from the ENS documentation, which links
-// to the values on Etherscan:
-//
-// - ENS docs: https://buildmedia.readthedocs.org/media/pdf/ens/latest/ens.pdf
-// - Mainnet: https://etherscan.io/address/0x314159265dd8dbb310642f98f50c066173c1259b
-// - Ropsten: https://ropsten.etherscan.io/address/0x112234455c3a32fd11230c42e7bccd4a84e02010
-const ropstenAddr = '0x112234455c3a32fd11230c42e7bccd4a84e02010';
-const mainnetAddr = '0x314159265dD8dbb310642f98f50C066173C1259b';
-const ensABI = require('./ensAbi.json');
+const ens = new ENS(web3Provider);
 
-export default ENS;
+// Address of our own node, hosted.eth
+const NODE_ADDR = 'placeholder';
+
+// Address of public ENS resolver
+const PUBLIC_RESOLVER_ADDR = '0x226159d592E2b063810a10Ebf6dcbADA94Ed68b8';
+
+export async function isNameAvailable(name:string) {
+  // ens.resolver(name) will throw ENS.NameNotFound if
+  // nothing is there.
+}
+
+export async function makeSubDomain(name:string) {
+  // ens.setSubnodeOwner()
+}
+
+export async function attachSubDomainResolver(name:string) {
+  // ens.setResolver()
+}
+
+export async function addIpfsToResolver(name:string) {
+  // ens.setContentHash()
+}
