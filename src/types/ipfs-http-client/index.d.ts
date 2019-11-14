@@ -34,13 +34,32 @@ declare module "ipfs-http-client" {
     }
     interface addResponseObject {
         path: string
-        hash: string, // base58 encoded multihash
+        hash: string // base58 encoded multihash
         size: number
     }
+    interface lsResponseObject {
+        depth: number
+        name: string 
+        path: string 
+        size: number
+        hash: string 
+        type: string
+      }
+      interface pinOptions {
+        recursive: boolean
+      }
+      interface pinResponseObject {
+        hash: string
+      }
 
     interface ipfs_http_client {
         add(data: any, options?: addOptions): Promise<addResponseObject[]>
         cat(ipfsPath: any, options?: catOptions): Promise<Buffer>
+        ls (ipfsPath : any): Promise<lsResponseObject[]>
+        pin :{
+            add(hash:string, options: pinOptions):Promise<pinResponseObject[]>
+            rm(hash : string, options : pinOptions): Promise<pinResponseObject[]>
+        }
         Buffer: Buffer;
     
     }
