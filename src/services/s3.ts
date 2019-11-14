@@ -61,7 +61,7 @@ function promiseCreateS3Bucket(bucketName:string) {
   let maxRetries = 5;
   let params = {
       Bucket: bucketName,
-      ACL: 'public-read'
+      ACL: 'private'
   };
   return addAwsPromiseRetries(() => s3.createBucket(params).promise(), maxRetries);
 }

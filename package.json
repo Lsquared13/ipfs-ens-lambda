@@ -27,9 +27,11 @@
     "ipfs-http-client": "^39.0.2",
     "node-zip": "^1.1.1",
     "request-promise-native": "^1.0.8",
+    "uuid": "^3.3.3",
     "web3": "^1.2.3"
   },
   "devDependencies": {
+    "@types/uuid": "^3.4.6",
     "@types/web3": "^1.2.2"
   }
 }
