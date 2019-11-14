@@ -15,9 +15,10 @@ const DeployIpfs = async (event: CodePipelineEvent) => {
 
     try {
         //TODO: Compress zip ? assume its already compressed see if can optimize based on initial compression algo
-      
-        var ipfs = ipfsClient('ipfs.infura.io', '5001', { protocol: 'https' })
         let artifact = await S3.downloadArtifact(artifactLocation, artifactCredentials);
+
+        //TODO: refactor into IPFS service 
+        var ipfs = ipfsClient('ipfs.infura.io', '5001', { protocol: 'https' })
         let prehash = await ipfs.add(artifact,{onlyHash:true});
         let result = await ipfs.add(artifact,{pin:true});
         const {path, hash, size} = result[0];

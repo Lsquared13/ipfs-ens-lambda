@@ -9,6 +9,26 @@ declare module "ipfs-http-client" {
 
     function ipfs_http_client(hostOrMultiaddr: any, port: any, userOptions: any): ipfs_http_client;
 
+    /**
+    * @preferred
+    * @param chunker  chunking algorithm used to build ipfs DAGs. Available formats: size-{size}, rabin, rabin-{avg}, rabin-{min}-{avg}-{max}
+    * @param cidVersion (integer, default 0): the CID version to use when storing the data (storage keys are based on the CID, including its version).
+    * @param cidBase (string, default base58btc): Number base to display CIDs in. The list of all possible values.
+    * @param enableShardingExperiment: allows to create directories with an unlimited number of entries currently size of unixfs directories is limited by the maximum block size. Note that this is an experimental feature.
+    * @param hashAlg || hash (string, default sha2-256): multihash hashing algorithm to use. The list of all possible values.
+    * @param onlyHash (boolean, default false): doesn't actually add the file to IPFS, but rather calculates its hash.
+    * @param pin (boolean, default true): pin this object when adding.
+    * @param progress (function): a function that will be called with the byte length of chunks as a file is added to ipfs.
+    * @param quiet (boolean, default false): writes a minimal output.
+    * @param quieter (boolean, default false): writes only final hash.
+    * @param rawLeaves (boolean, default false): if true, DAG leaves will contain raw file data and not be wrapped in a protobuf.
+    * @param recursive (boolean, default false): for when a Path is passed, this option can be enabled to add recursively all the files.
+    * @param shardSplitThreshold (integer, default 1000): specifies the maximum size of unsharded directory that can be generated.
+    * @param silent (boolean, default false): writes no output.
+    * @param trickle (boolean, default false): if true will use the trickle DAG format for DAG generation. Trickle definition from go-ipfs documentation.
+    * @param wrapWithDirectory (boolean, default false): adds a wrapping node around the content.
+    * 
+    */
     interface addOptions {
         chunker?: string
         cidVersion?: number
@@ -26,15 +46,22 @@ declare module "ipfs-http-client" {
         trickle?: boolean
         wrapWithDirectory?: boolean
     }
-
-
+    
+    /**
+     * @param offset  is an optional byte offset to start the stream at
+     * @param length  is an optional number of bytes to read from the stream
+     */
     interface catOptions {
-        offset: number // is an optional byte offset to start the stream at
-        length: number // is an optional number of bytes to read from the stream
+        offset: number 
+        length: number 
     }
+       /**
+     * @param hash  base58 encoded multihash
+     * @param length  is an optional number of bytes to read from the stream
+     */
     interface addResponseObject {
         path: string
-        hash: string // base58 encoded multihash
+        hash: string 
         size: number
     }
     interface lsResponseObject {
@@ -52,12 +79,68 @@ declare module "ipfs-http-client" {
         hash: string
       }
 
+
+
     interface ipfs_http_client {
+        /**
+         * @param data  Buffer, Readable Stream, Pull Stream OR array of {
+                                path: '/tmp/myfile.txt', 
+                                content: <data> 
+                            }
+         * @param options  options is an optional object argument that might include the following keys:
+            chunker (string, default size-262144): chunking algorithm used to build ipfs DAGs. Available formats:
+            size-{size}
+            rabin
+            rabin-{avg}
+            rabin-{min}-{avg}-{max}
+            cidVersion (integer, default 0): the CID version to use when storing the data (storage keys are based on the CID, including its version).
+            cidBase (string, default base58btc): Number base to display CIDs in. The list of all possible values.
+            enableShardingExperiment: allows to create directories with an unlimited number of entries currently size of unixfs directories is limited by the maximum block size. Note that this is an experimental feature.
+            hashAlg || hash (string, default sha2-256): multihash hashing algorithm to use. The list of all possible values.
+            onlyHash (boolean, default false): doesn't actually add the file to IPFS, but rather calculates its hash.
+            pin (boolean, default true): pin this object when adding.
+            progress (function): a function that will be called with the byte length of chunks as a file is added to ipfs.
+            quiet (boolean, default false): writes a minimal output.
+            quieter (boolean, default false): writes only final hash.
+            rawLeaves (boolean, default false): if true, DAG leaves will contain raw file data and not be wrapped in a protobuf.
+            recursive (boolean, default false): for when a Path is passed, this option can be enabled to add recursively all the files.
+            shardSplitThreshold (integer, default 1000): specifies the maximum size of unsharded directory that can be generated.
+            silent (boolean, default false): writes no output.
+            trickle (boolean, default false): if true will use the trickle DAG format for DAG generation. Trickle definition from go-ipfs documentation.
+            wrapWithDirectory (boolean, default false): adds a wrapping node around the content.
+         */
         add(data: any, options?: addOptions): Promise<addResponseObject[]>
+        /**
+         * @param ipfsPath can be of type:
+         * CID instance
+         * Buffer, the raw Buffer of the cid
+         * String, the base58 encoded version of the cid
+         * String, including the ipfs handler, a cid and a path to traverse to
+         * @param options is an optional object that may contain the following keys:
+         * offset is an optional byte offset to start the stream at
+         * length is an optional number of bytes to read from the stream
+         */
         cat(ipfsPath: any, options?: catOptions): Promise<Buffer>
+        /**
+         * @param ipfsPath can be of type:
+         * CID instance
+         * Buffer, the raw Buffer of the cid
+         * String, the base58 encoded version of the cid
+         * String, including the ipfs handler, a cid and a path to traverse to
+         */
         ls (ipfsPath : any): Promise<lsResponseObject[]>
         pin :{
+            /**
+             * @param hash is an IPFS multihash.
+             * @param options is an object that can contain the following keys
+             * 'recursive' - Recursively pin the object linked. Type: bool. Default: true
+             */
             add(hash:string, options: pinOptions):Promise<pinResponseObject[]>
+            /**
+             * @param hash is an IPFS multihash.
+             * @param options is an object that can contain the following keys
+             * 'recursive' - Recursively pin the object linked. Type: bool. Default: true
+             */
             rm(hash : string, options : pinOptions): Promise<pinResponseObject[]>
         }
         Buffer: Buffer;
