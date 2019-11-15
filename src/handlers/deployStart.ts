@@ -29,7 +29,7 @@ const DeployStart = async (event: APIGatewayEvent) => {
     // based on the provided owner/repo/branch.
     const pipelineName = `ipfs-ens-builder-${deploymentSuffix}`;
     const oauthToken = event.headers['Authorization']
-    const createdPipeline = await CodePipeline.createDeploy(ensName, pipelineName, buildDir, oauthToken, owner, repo, branch, artifactBucketname)
+    const createdPipeline = await CodePipeline.createDeploy(ensName, pipelineName, buildDir, oauthToken, owner, repo, branch)
     return successResponse({ newItem, savedSeed, createdBucket, createdPipeline });
   } catch (err) {
     return unexpectedErrorResponse(err);

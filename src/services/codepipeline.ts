@@ -1,5 +1,5 @@
 import {
-  AWS, pipelineRoleArn, deploySeedBucket, codebuildBuildId,
+  AWS, pipelineRoleArn, artifactBucket, codebuildBuildId,
   deployIpfsFxnName
 } from '../env';
 import { CreatePipelineInput } from 'aws-sdk/clients/codepipeline';
@@ -31,12 +31,16 @@ function promiseCreatePipeline(params: CreatePipelineInput) {
 /**
  * Specific function for creating CodePipelines which
  * build from GitHub and deploy to IPFS.
+ * @param ensName
  * @param pipelineName 
- * @param seed 
+ * @param buildDir
  * @param oauthGithubToken 
+ * @param owner
+ * @param repo
+ * @param branch
  */
-function promiseCreateDeployPipeline(ensName: string, pipelineName: string, buildDir: string, oauthGithubToken: string, owner: string, repo: string, branch: string, artifactBucket:string) {
-  return promiseCreatePipeline(DeployPipelineParams(ensName, pipelineName, buildDir, oauthGithubToken, owner, repo, branch, artifactBucket))
+function promiseCreateDeployPipeline(ensName: string, pipelineName: string, buildDir: string, oauthGithubToken: string, owner: string, repo: string, branch: string) {
+  return promiseCreatePipeline(DeployPipelineParams(ensName, pipelineName, buildDir, oauthGithubToken, owner, repo, branch))
 }
 
 function promiseRunPipeline(pipelineName: string) {
@@ -82,8 +86,7 @@ function DeployPipelineParams(
   oauthGithubToken: string,
   owner: string,
   repo: string,
-  branch: string,
-  artifactBucket: string
+  branch: string
 ): CreatePipelineInput {
   return {
     pipeline: {
@@ -95,30 +98,6 @@ function DeployPipelineParams(
         type: 'S3'
       },
       stages: [
-        {
-          name: 'Fetch Deploy Seed',
-          actions: [
-            {
-              "name": "Source",
-              "actionTypeId": {
-                "category": "Source",
-                "owner": "AWS",
-                "version": "1",
-                "provider": "S3"
-              },
-              "outputArtifacts": [
-                {
-                  "name": "DEPLOYSEED"
-                }
-              ],
-              "configuration": {
-                "S3Bucket": deploySeedBucket,
-                "S3ObjectKey": `${ensName}/seed.json`
-              },
-              "runOrder": 1
-            }
-          ]
-        },
         {
           name: 'Fetch Source',
           "actions": [
@@ -153,9 +132,6 @@ function DeployPipelineParams(
               "inputArtifacts": [
                 {
                   "name": "SOURCE"
-                },
-                {
-                  "name": "DEPLOYSEED"
                 }
               ],
               "name": "Build",
