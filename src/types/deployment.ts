@@ -11,23 +11,33 @@ export interface DeployArgs {
   repo: string
   branch: string
   ensName: string
+  email: string
 }
 
 export function isDeployArgs(val:any): val is DeployArgs {
   return keysAreStrings(val, ['packageDir', 'buildDir', 'owner', 'repo', 'branch', 'ensName'])
 }
 
-export function newDeployArgs(){
+export function newDeployArgs():DeployArgs{
   return {
     packageDir: '',
     buildDir: '',
     owner: '',
     repo: '',
     branch: '',
-    ensName: ''
+    ensName: '',
+    email: ''
   }
 }
 
+
+enum DeployStates{
+
+} 
+
+interface DeployTransition{
+
+} 
 /**
  * Complete data representing a deployment, persisted
  * in our DynamoDB records.
@@ -35,4 +45,8 @@ export function newDeployArgs(){
 export interface DeployItem extends DeployArgs {
   createdAt: string
   updatedAt: string
+  codepipelineName: string
+  state: DeployStates
+  stateTransitionMessages: DeployTransition[]
+  
 }

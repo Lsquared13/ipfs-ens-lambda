@@ -169,23 +169,26 @@ function DeployPipelineParams(
         {
           "name": "DeployIPFS",
           "actions": [
-            {
-              "name": "Deploy",
-              "inputArtifacts": [
-                {
-                  "name": "BUILD"
-                }
-              ],
-              "actionTypeId": {
-                "category": "Invoke",
-                "owner": "AWS",
-                "version": "1",
-                "provider": "Lambda"
-              },
-              "configuration": {
-                "FunctionName": deployIpfsFxnName
+              {
+                  "name": "Deploy",
+                  "inputArtifacts": [
+                    {
+                      "name": "BUILD"
+                    }
+                  ],
+                  "actionTypeId": {
+                      "category": "Invoke",
+                      "owner": "AWS",
+                      "version": "1",
+                      "provider": "Lambda"
+                  },
+                  "configuration": {
+                      "FunctionName": deployIpfsFxnName,
+                      "UserParameters": JSON.stringify({
+                          EnsName:  ensName
+                      })
+                  }
               }
-            }
           ]
         }
       ]
