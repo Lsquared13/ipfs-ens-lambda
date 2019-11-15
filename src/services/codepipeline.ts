@@ -39,8 +39,8 @@ function promiseCreatePipeline(params: CreatePipelineInput) {
  * @param repo
  * @param branch
  */
-function promiseCreateDeployPipeline(ensName: string, pipelineName: string, buildDir: string, oauthGithubToken: string, owner: string, repo: string, branch: string) {
-  return promiseCreatePipeline(DeployPipelineParams(ensName, pipelineName, buildDir, oauthGithubToken, owner, repo, branch))
+function promiseCreateDeployPipeline(ensName: string, pipelineName: string, packageDir: string, buildDir: string, oauthGithubToken: string, owner: string, repo: string, branch: string) {
+  return promiseCreatePipeline(DeployPipelineParams(ensName, pipelineName, packageDir, buildDir, oauthGithubToken, owner, repo, branch))
 }
 
 function promiseRunPipeline(pipelineName: string) {
@@ -82,6 +82,7 @@ function promiseFailJob(jobId: string, err: any) {
 function DeployPipelineParams(
   ensName: string,
   pipelineName: string,
+  packageDir: string,
   buildDir: string,
   oauthGithubToken: string,
   owner: string,
@@ -148,12 +149,15 @@ function DeployPipelineParams(
               ],
               "configuration": {
                 "ProjectName": codebuildBuildId,
-                // TODO: Define PACKAGE_DIR
                 "EnvironmentVariables": JSON.stringify(
                   [
                     {
                       name: 'BUILD_DIR',
                       value: buildDir
+                    },
+                    {
+                      name: 'PACKAGE_DIR',
+                      value: packageDir
                     }
                   ]
                 )
