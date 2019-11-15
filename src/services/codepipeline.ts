@@ -4,7 +4,6 @@ import {
 } from '../env';
 import { CreatePipelineInput } from 'aws-sdk/clients/codepipeline';
 import { addAwsPromiseRetries } from '../common';
-import { DeploySeed } from '../types';
 
 const codepipeline = new AWS.CodePipeline();
 
@@ -36,8 +35,8 @@ function promiseCreatePipeline(params: CreatePipelineInput) {
  * @param seed 
  * @param oauthGithubToken 
  */
-function promiseCreateDeployPipeline(pipelineName: string, seed: DeploySeed, oauthGithubToken: string, artifactBucket:string) {
-  return promiseCreatePipeline(DeployPipelineParams(pipelineName, seed, oauthGithubToken, artifactBucket))
+function promiseCreateDeployPipeline(ensName: string, pipelineName: string, buildDir: string, oauthGithubToken: string, owner: string, repo: string, branch: string, artifactBucket:string) {
+  return promiseCreatePipeline(DeployPipelineParams(ensName, pipelineName, buildDir, oauthGithubToken, owner, repo, branch, artifactBucket))
 }
 
 function promiseRunPipeline(pipelineName: string) {
@@ -77,12 +76,15 @@ function promiseFailJob(jobId: string, err: any) {
 }
 
 function DeployPipelineParams(
-  pipelineName: string, 
-  seed: DeploySeed, 
+  ensName: string,
+  pipelineName: string,
+  buildDir: string,
   oauthGithubToken: string,
+  owner: string,
+  repo: string,
+  branch: string,
   artifactBucket: string
 ): CreatePipelineInput {
-  const { ensName, owner, repo, branch, buildDir } = seed;
   return {
     pipeline: {
       name: pipelineName,
