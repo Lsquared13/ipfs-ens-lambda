@@ -11,7 +11,7 @@ const DeployStart = async (event: APIGatewayEvent) => {
   if (!isDeployArgs(body)) return userErrorResponse({
     message: `Please include all of the required keys: ${Object.keys(newDeployArgs()).join(', ')}`
   })
-  const { ensName, buildDir, owner, repo, branch } = body;
+  const { ensName, packageDir, buildDir, owner, repo, branch } = body;
 
   try {
     // Initialize DeployItem in DynamoDB
@@ -29,7 +29,7 @@ const DeployStart = async (event: APIGatewayEvent) => {
     // based on the provided owner/repo/branch.
     const pipelineName = `ipfs-ens-builder-${deploymentSuffix}`;
     const oauthToken = event.headers['Authorization']
-    const createdPipeline = await CodePipeline.createDeploy(ensName, pipelineName, buildDir, oauthToken, owner, repo, branch)
+    const createdPipeline = await CodePipeline.createDeploy(ensName, pipelineName, packageDir, buildDir, oauthToken, owner, repo, branch)
     return successResponse({ newItem, savedSeed, createdBucket, createdPipeline });
   } catch (err) {
     return unexpectedErrorResponse(err);

@@ -5,6 +5,7 @@ import { keysAreStrings } from '../validators';
  * Sent to us by client, persisted in S3.
  */
 export interface DeployArgs {
+  packageDir: string
   buildDir: string
   owner: string
   repo: string
@@ -13,11 +14,12 @@ export interface DeployArgs {
 }
 
 export function isDeployArgs(val:any): val is DeployArgs {
-  return keysAreStrings(val, ['buildDir', 'owner', 'repo', 'branch', 'ensName'])
+  return keysAreStrings(val, ['packageDir', 'buildDir', 'owner', 'repo', 'branch', 'ensName'])
 }
 
 export function newDeployArgs(){
   return {
+    packageDir: '',
     buildDir: '',
     owner: '',
     repo: '',
