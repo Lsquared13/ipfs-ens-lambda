@@ -5,6 +5,7 @@ export const awsRegion = process.env.AWS_REGION as string;
 
 // Provided to us via Terraform
 export const ethKey = process.env.ETH_KEY as string;
+export const ethAddress = process.env.ETH_ADDRESS as string;
 export const ipfsEndpoint = process.env.IPFS_ENDPOINT as string;
 export const ensContractAddress = process.env.ENS_CONTRACT_ADDRESS as string;
 export const ensRootDomain = process.env.ENS_ROOT_DOMAIN as string;
