@@ -16,7 +16,7 @@ export const githubClientId = process.env.GITHUB_CLIENT_ID as string;
 export const githubClientSecret = process.env.GITHUB_CLIENT_SECRET as string;
 
 // CodePipeline variables
-export const deploySeedBucket = process.env.DEPLOY_SEED_BUCKET as string;
+export const artifactBucket = process.env.ARTIFACT_BUCKET as string;
 export const pipelineRoleArn = process.env.PIPELINE_ROLE_ARN as string;
 export const codebuildBuildId = process.env.CODEBUILD_BUILD_ID as string;
 export const deployIpfsFxnName = process.env.SERVICES_LAMBDA_FUNCTION as string;
@@ -29,5 +29,5 @@ export const AWS = NoConfigAWS;
 module.exports = { 
     AWS, awsRegion, ethKey, ipfsEndpoint, ensContractAddress,
     ensRootDomain, defaultGasPrice, githubClientId, 
-    githubClientSecret, deploySeedBucket
+    githubClientSecret, artifactBucket
 };
