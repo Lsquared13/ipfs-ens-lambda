@@ -1,4 +1,5 @@
 import { keysAreStrings } from '../validators';
+import { DynamoDB } from '../services';
 
 /**
  * Barebones arguments required to create a deployment.
@@ -49,4 +50,13 @@ export interface DeployItem extends DeployArgs {
   state: DeployStates
   stateTransitionMessages: DeployTransition[]
   
+}
+
+export interface  ensRecordResponse {
+  deployItem: DeployItem
+}
+
+export interface SqsMessageBody {
+  Method : string
+  EnsName : string
 }

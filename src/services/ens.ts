@@ -33,7 +33,7 @@ export async function isNameAvailable(name:string) {
     throw Error(`Error performing subdomain resolution(): ${error}`)
 
   }
-  return 
+  // return 
   // ens.resolver(name) will throw ENS.NameNotFound if
   // nothing is there.
 }
