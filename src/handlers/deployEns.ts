@@ -1,7 +1,7 @@
 import { SQSEvent, SQSRecord } from "../types/lambda-event-types/";
 import processor from './processor';
 import { successResponse, unexpectedErrorResponse } from '@eximchain/dappbot-types/spec/responses';
-
+import {DeployStates} from '../types/deployment'
 
 /**
  * invariant: this Lambda function feeds from an SQS trigger with Batch Size set to one (only one record in each event)
@@ -26,7 +26,7 @@ async function processRecord(record:SQSRecord) {
   let method = record.messageAttributes.Method.stringValue;
   let body = JSON.parse(record.body);
   //TODO: destructure
-  // const {} = body
+  // const {method: DeployStates} = body.DeployState
   // TODO: Get ensName out of record to retrieve the DDB record
 
 
@@ -52,7 +52,7 @@ function methodProcessor(method:any) {
             //   3. Delete the associated S3 artifact bucket.
           return processor.delete;
       default:
-          return (body:any) => Promise.reject({message: `Unrecognized method name ${method} for processing '${dappName}'`});
+          return (body:any) => Promise.reject({message: `Unrecognized method name ${method} for processing`});
   }
 }
 

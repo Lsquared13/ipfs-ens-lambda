@@ -19,6 +19,7 @@ function promiseSendMessage(method:string, body:string) {
     return addAwsPromiseRetries(() => sqs.sendMessage(params).promise(), maxRetries);
 }
 
-export default {
+export const SQS = {
     sendMessage : promiseSendMessage
-}
+  }
+export default SQS;

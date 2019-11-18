@@ -31,11 +31,11 @@ export function newDeployArgs():DeployArgs{
 }
 
 
-enum DeployStates{
+export enum DeployStates{
 
 } 
 
-interface DeployTransition{
+export interface DeployTransition{
 
 } 
 /**

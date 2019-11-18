@@ -1,4 +1,4 @@
-import { CodePipeline, S3,sqs } from '../services';
+import { CodePipeline, S3, SQS , DynamoDB} from '../services';
 import { ResponseOptions } from '@eximchain/dappbot-types/spec/responses';
 import { CodePipelineEvent } from '../types/lambda-event-types';
 import  ipfsClient from 'ipfs-http-client'
@@ -27,11 +27,13 @@ const DeployIpfs = async (event: CodePipelineEvent) => {
         if(path && hash && size){
             //TODO: SEND SSQS MESSAGE TO START ENS TRANSACTION CHAIN, KEYED BY ENS NAME TO FETCH DDB state
             let sqsMessageBody = {
-                //TODO: extract out magic numbers to types
+                //TODO: extract out magic to types
                 Method : "DeployEns",
                 EnsName : EnsName
               }
-            sqs.sendMessage("DeployEns", JSON.stringify(sqsMessageBody));
+              //TODO: update dynamo state and send out sqs message
+              DynamoDB.updateDeployItem("",{})
+              SQS.sendMessage("DeployEns", JSON.stringify(sqsMessageBody));
             return await CodePipeline.completeJob(id);
         }
         throw new Error('did not recieve response from ipfs add with pin, try again later could be Infura');
