@@ -1,6 +1,6 @@
 import { CodePipeline, S3, SQS , DynamoDB} from '../services';
-import { ResponseOptions } from '@eximchain/dappbot-types/spec/responses';
-import { CodePipelineEvent } from '../types/lambda-event-types';
+import { ResponseOptions } from '@eximchain/api-types/spec/responses';
+import { CodePipelineEvent } from '@eximchain/api-types/spec/events';
 import  ipfsClient from 'ipfs-http-client'
 
 const DeployIpfs = async (event: CodePipelineEvent) => {

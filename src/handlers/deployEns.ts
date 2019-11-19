@@ -1,12 +1,18 @@
-import { SQSEvent, SQSRecord } from "../types/lambda-event-types/";
+import { SQSEvent, SQSRecord } from '@eximchain/api-types/spec/events';
 import processor from './processor';
-import { successResponse, unexpectedErrorResponse } from '@eximchain/dappbot-types/spec/responses';
-import {DeployStates, SqsMessageBody} from '../types/deployment'
-import {DynamoDB} from "../services"
+import { successResponse, unexpectedErrorResponse } from '@eximchain/api-types/spec/responses';
+import { DeployStates } from '@eximchain/ipfs-ens-types/spec/deployment';
+import { DynamoDB } from "../services"
 import { web3Provider, web3 } from '../services/web3';
+
+interface SqsMessageBody {
+  Method : string
+  EnsName : string
+}
 
 /**
  * invariant: this Lambda function feeds from an SQS trigger with Batch Size set to one (only one record in each event)
+ * invariant: only one instance of this function should run at a time
  * @param event 
  */
 const DeployEns = async(event:SQSEvent) => {
@@ -64,7 +70,7 @@ async function processRecord(record:SQSRecord) {
     return Error("failed to fetch database record")
   }
 
-  const {packageDir, buildDir, owner, repo, branch, ensName,email, createdAt, updatedAt, codepipelineName, state} = ddbResponse
+  const {packageDir, buildDir, owner, repo, branch, ensName, username, createdAt, updatedAt, codepipelineName, state} = ddbResponse
   
   //Reduce state and state transition
   let recordProcessor = stateProcessor(state);

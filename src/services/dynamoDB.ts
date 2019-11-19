@@ -1,6 +1,6 @@
 import { AWS, deployTableName } from '../env';
 import { addAwsPromiseRetries } from '../common';
-import { DeploySeed, DeployItem } from '../types';
+import { DeployArgs, DeployItem, DeployStates } from '@eximchain/ipfs-ens-types/spec/deployment';
 import { PutItemInputAttributeMap } from 'aws-sdk/clients/dynamodb';
 
 const ddb = new AWS.DynamoDB({apiVersion: '2012-08-10'});
@@ -14,17 +14,22 @@ export const DynamoDB = {
 export default DynamoDB;
 
 /**
- * Given a deploySeed, create a record for it in the
+ * Given a deployArgs, create a record for it in the
  * deployTable.  Sets the `createdAt` and `updatedAt`
  * values to now.
- * @param deploySeed 
+ * @param deployArgs 
  */
-function initDeployItem(deploySeed:DeploySeed) {
+function initDeployItem(deployArgs:DeployArgs) {
   let maxRetries = 5;
   let now = new Date().toString();
-  let deployItem = Object.assign(deploySeed, {
+  // TODO: Pipe through actual values for username and codepipelineName
+  let deployItem = Object.assign(deployArgs, {
     createdAt: now,
-    updatedAt: now
+    updatedAt: now,
+    username: 'TODO',
+    state: DeployStates.FETCHING_SOURCE,
+    codepipelineName: 'TODO',
+    transitions: {}
   });
   let ddbItem = ddbFromDeployItem(deployItem);
   let putItemParams = {
