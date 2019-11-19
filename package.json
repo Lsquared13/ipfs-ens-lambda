@@ -1,6 +1,6 @@
 {
   "name": "ipfs-ens-lambda",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "AWS Lambda functions for IPFS-ENS deployer",
   "main": "index.js",
   "scripts": {
