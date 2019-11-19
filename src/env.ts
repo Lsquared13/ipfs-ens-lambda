@@ -11,6 +11,7 @@ export const ensContractAddress = process.env.ENS_CONTRACT_ADDRESS as string;
 export const ensRootDomain = process.env.ENS_ROOT_DOMAIN as string;
 export const defaultGasPrice = process.env.DEFAULT_GAS_PRICE as string;
 export const sqsQueue = process.env.SQS_QUEUE as string;
+export const nonceTableName = process.env.NONCE_TABLE_NAME as string;
 
 // GitHub Variables
 export const githubClientId = process.env.GITHUB_CLIENT_ID as string;
@@ -30,5 +31,5 @@ export const AWS = NoConfigAWS;
 module.exports = { 
     AWS, awsRegion, ethKey, ipfsEndpoint, ensContractAddress,
     ensRootDomain, defaultGasPrice, githubClientId, 
-    githubClientSecret, artifactBucket
+    githubClientSecret, artifactBucket, nonceTableName
 };
