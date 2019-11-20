@@ -11,7 +11,7 @@ cp -R node_modules build/node_modules
 rm -f $BUNDLE_NAME
 
 # npx makes command work even if tsc isn't installed
-npx -p typescript tsc
+npx -p typescript@3.6.3 tsc
 cd build
 zip -r ../$BUNDLE_NAME *
 cd ..

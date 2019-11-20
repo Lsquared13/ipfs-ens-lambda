@@ -1,10 +1,10 @@
 import Web3 from 'web3';
-import { Chain } from '@eximchain/dappbot-types/spec/dapp';
+import Chains from '@eximchain/api-types/spec/chains';
 import {ethKey, ethAddress} from '../env'
 
 export const USING_MAINNET = false;
 
-const { Ethereum, Ropsten } = Chain;
+const { Ethereum, Ropsten } = Chains;
 export const web3Url = USING_MAINNET ? Ethereum().web3Url : Ropsten().web3Url;
 export const web3Provider = new Web3.providers.HttpProvider(web3Url);
 export const web3 = new Web3(web3Provider);

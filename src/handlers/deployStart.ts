@@ -1,7 +1,8 @@
 import uuid from 'uuid/v4';
-import { isDeployArgs, newDeployArgs, APIGatewayEvent } from "../types";
+import { isDeployArgs, newDeployArgs } from '@eximchain/ipfs-ens-types/spec/deployment';
+import { APIGatewayEvent } from '@eximchain/api-types/spec/events';
 import { S3, DynamoDB, CodePipeline } from '../services';
-import { userErrorResponse, unexpectedErrorResponse, successResponse } from "@eximchain/dappbot-types/spec/responses";
+import { userErrorResponse, unexpectedErrorResponse, successResponse } from '@eximchain/api-types/spec/responses';
 
 const DeployStart = async (event: APIGatewayEvent) => {
   console.log("DeployStart request: " + JSON.stringify(event));
@@ -18,9 +19,6 @@ const DeployStart = async (event: APIGatewayEvent) => {
     const deploymentSuffix = uuid();
     const newItem = await DynamoDB.initDeployItem(body);
 
-    // Initialize seed into s3 deploySeed bucket
-    const savedSeed = await S3.putDeploySeed(body)
-
     // Create new CodePipeline's artifact bucket
     const artifactBucketname = `ipfs-ens-artfacts-${deploymentSuffix}`;
     const createdBucket = await S3.createBucket(artifactBucketname);
@@ -30,7 +28,7 @@ const DeployStart = async (event: APIGatewayEvent) => {
     const pipelineName = `ipfs-ens-builder-${deploymentSuffix}`;
     const oauthToken = event.headers['Authorization']
     const createdPipeline = await CodePipeline.createDeploy(ensName, pipelineName, packageDir, buildDir, oauthToken, owner, repo, branch)
-    return successResponse({ newItem, savedSeed, createdBucket, createdPipeline });
+    return successResponse({ newItem, createdBucket, createdPipeline });
   } catch (err) {
     return unexpectedErrorResponse(err);
   }

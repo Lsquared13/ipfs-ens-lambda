@@ -1,5 +1,5 @@
 import { makeAppGitHub, makeUserGitHub } from '../services/github';
-import { APIGatewayAuthorizerEvent } from '../types';
+import { APIGatewayAuthorizerEvent } from '@eximchain/api-types/spec/events';
 import { githubClientId } from '../env';
 
 const TokenCheck = async (event: APIGatewayAuthorizerEvent, content: any, callback: Function) => {
