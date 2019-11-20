@@ -11,7 +11,7 @@ export const DynamoDB = {
   getDeployItem,
   updateDeployItem,
   getNextNonceEthereum,
-  setNextNonceEthereum
+  incrementNextNonceEthereum
 }
 
 export default DynamoDB;
@@ -181,11 +181,13 @@ async function getNextNonceForChain(chain:Chains.Names):Promise<number> {
   return +nextNonce;
 }
 
-async function setNextNonceForChain(chain:Chains.Names, nonce:number) {
+// Should be called immediately after sending a transaction with currentNonce
+async function incrementNextNonceForChain(chain:Chains.Names, currentNonce:number) {
+  let newNonce = currentNonce + 1;
   let currentNonceItem = await getRawNonceItem(chain);
   if (!currentNonceItem.Item) throw new Error(`Set nonce error: No nonce item found for ${chain}`);
   let newNonceItem = currentNonceItem.Item;
-  let newNonceAttr = {'N': nonce.toString()};
+  let newNonceAttr = {'N': newNonce.toString()};
   newNonceItem.NextNonce = newNonceAttr;
   await putRawNonceItem(newNonceItem);
 }
@@ -194,6 +196,6 @@ async function getNextNonceEthereum():Promise<number> {
   return await getNextNonceForChain(Chains.Names.Ethereum);
 }
 
-async function setNextNonceEthereum(nonce:number) {
-  await setNextNonceForChain(Chains.Names.Ethereum, nonce);
+async function incrementNextNonceEthereum(currentNonce:number) {
+  await incrementNextNonceForChain(Chains.Names.Ethereum, currentNonce);
 }
