@@ -16,6 +16,7 @@ const DeployStart = async (event: APIGatewayEvent) => {
 
   try {
     // Initialize DeployItem in DynamoDB
+    throw new Error(`Bailing out of logic for testing, deployStart received following args: ${JSON.stringify(body, null, 2)}`);
     const deploymentSuffix = uuid();
     const newItem = await DynamoDB.initDeployItem(body);
 
