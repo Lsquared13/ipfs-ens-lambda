@@ -39,6 +39,7 @@ function initDeployItem(deployArgs:DeployArgs) {
     TableName: deployTableName,
     Item: ddbItem
   }
+  console.log('Attempting to init DeployItem w/ req: ',putItemParams);
   return addAwsPromiseRetries(() => ddb.putItem(putItemParams).promise(), maxRetries);
 }
 
