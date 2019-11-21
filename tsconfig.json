@@ -14,6 +14,7 @@
       "types" : ["node"],
       "outDir": "build",
       "sourceRoot": "src",
+      "isolatedModules": true,
       "allowSyntheticDefaultImports": true,
       "esModuleInterop": true,
       "typeRoots" : ["./types", "./node_modules/@types"]
