@@ -10,7 +10,7 @@ const DeployProxyApi = async (event: APIGatewayEvent) => {
   const method = event.httpMethod.toUpperCase() as HttpMethods.ANY;
   switch (method) {
     case 'OPTIONS':
-      return successResponse(null);
+      return successResponse({});
     case 'POST':
       const body = JSON.parse(event.body || '');
       const authToken = event.headers['Authorization']
@@ -30,9 +30,11 @@ async function createDeploy(args: any, oauthToken: string) {
 
   try {
     // Initialize DeployItem in DynamoDB
-    throw new Error(`Bailing out of logic for testing, deployStart received following arg body: ${JSON.stringify(args, null, 2)}`);
     const deploymentSuffix = uuid();
     const newItem = await DynamoDB.initDeployItem(args);
+    // Bailing out of real app logic for testing purposes, just make a Dynamo record.
+    return successResponse({ newItem });
+    throw new Error(`Bailing out of logic for testing, deployStart received following arg body: ${JSON.stringify(args, null, 2)}`);
 
     // Create new CodePipeline's artifact bucket
     const artifactBucketname = `ipfs-ens-artfacts-${deploymentSuffix}`;
