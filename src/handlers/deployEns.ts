@@ -1,9 +1,7 @@
 import { SQSEvent, SQSRecord } from '@eximchain/api-types/spec/events';
 import processor from './processor';
 import { successResponse, unexpectedErrorResponse } from '@eximchain/api-types/spec/responses';
-import { DeployStates } from '@eximchain/ipfs-ens-types/spec/deployment';
 import { DynamoDB } from "../services"
-import { web3Provider, web3 } from '../services/web3';
 
 interface SqsMessageBody {
   Method : string

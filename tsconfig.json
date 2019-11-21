@@ -11,12 +11,10 @@
       "inlineSourceMap": true,
       "strict": true,             // Strict types, eg. prohibits `var x=0; x=null`
       "alwaysStrict": true,        // Enable JavaScript's "use strict" mode
-      "types" : ["node"],
       "outDir": "build",
       "sourceRoot": "src",
       "isolatedModules": true,
       "allowSyntheticDefaultImports": true,
-      "esModuleInterop": true,
-      "typeRoots" : ["./types", "./node_modules/@types"]
+      "esModuleInterop": true
     }
 }

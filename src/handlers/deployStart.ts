@@ -1,6 +1,5 @@
 import uuid from 'uuid/v4';
 import { isDeployArgs, newDeployArgs } from '@eximchain/ipfs-ens-types/spec/deployment';
-import { ReadDeployment } from '@eximchain/ipfs-ens-types/spec/methods/private';
 import { APIGatewayEvent } from '@eximchain/api-types/spec/events';
 import { S3, DynamoDB, CodePipeline } from '../services';
 import { userErrorResponse, unexpectedErrorResponse, successResponse, HttpMethods } from '@eximchain/api-types/spec/responses';
