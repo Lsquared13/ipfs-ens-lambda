@@ -1,5 +1,6 @@
-import { AWS, deployTableName } from '../env';
+import { AWS, deployTableName, nonceTableName } from '../env';
 import { addAwsPromiseRetries } from '../common';
+import Chains from '@eximchain/api-types/spec/chains';
 import { DeployArgs, DeployItem, DeployStates } from '@eximchain/ipfs-ens-types/spec/deployment';
 import { PutItemInputAttributeMap } from 'aws-sdk/clients/dynamodb';
 
@@ -8,7 +9,9 @@ const ddb = new AWS.DynamoDB({apiVersion: '2012-08-10'});
 export const DynamoDB = {
   initDeployItem,
   getDeployItem,
-  updateDeployItem
+  updateDeployItem,
+  getNextNonceEthereum,
+  incrementNextNonceEthereum
 }
 
 export default DynamoDB;
@@ -79,7 +82,7 @@ async function updateDeployItem(ensName:string, updater:DeployUpdater) {
   return await putRawDeployItem(updatedDDB);
 }
 
-function serializeDdbKey(ensName:string) {
+function serializeDeployItemKey(ensName:string) {
   let keyItem = {
       'EnsName': {S: ensName}
   };
@@ -125,7 +128,7 @@ function getRawDeployItem(ensName:string) {
   let maxRetries = 5;
   let getItemParams = {
       TableName: deployTableName,
-      Key: serializeDdbKey(ensName)
+      Key: serializeDeployItemKey(ensName)
   };
 
   return addAwsPromiseRetries(() => ddb.getItem(getItemParams).promise(), maxRetries);
@@ -141,3 +144,58 @@ function putRawDeployItem(item:PutItemInputAttributeMap) {
     return addAwsPromiseRetries(() => ddb.putItem(putItemParams).promise(), maxRetries);
 }
 
+// Nonce Management
+
+function serializeNonceItemKey(chain:Chains.Names) {
+  let keyItem = {
+      'Chain': {S: chain}
+  };
+  return keyItem;
+}
+
+function getRawNonceItem(chain:Chains.Names) {
+  let maxRetries = 5;
+  let getItemParams = {
+      TableName: nonceTableName,
+      Key: serializeNonceItemKey(chain)
+  };
+
+  return addAwsPromiseRetries(() => ddb.getItem(getItemParams).promise(), maxRetries);
+}
+
+function putRawNonceItem(item:PutItemInputAttributeMap) {
+  let maxRetries = 5;
+    let putItemParams = {
+        TableName: nonceTableName,
+        Item: item
+    };
+
+    return addAwsPromiseRetries(() => ddb.putItem(putItemParams).promise(), maxRetries);
+}
+
+async function getNextNonceForChain(chain:Chains.Names):Promise<number> {
+  let nonceItem = await getRawNonceItem(chain);
+  if (!nonceItem.Item) throw new Error(`Get nonce error: No nonce item found for ${chain}`);
+  let nextNonce = nonceItem.Item.NextNonce.N;
+  if (!nextNonce) throw new Error(`Get nonce error: No NextNonce found in item for  ${chain}`);
+  return +nextNonce;
+}
+
+// Should be called immediately after sending a transaction with currentNonce
+async function incrementNextNonceForChain(chain:Chains.Names, currentNonce:number) {
+  let newNonce = currentNonce + 1;
+  let currentNonceItem = await getRawNonceItem(chain);
+  if (!currentNonceItem.Item) throw new Error(`Set nonce error: No nonce item found for ${chain}`);
+  let newNonceItem = currentNonceItem.Item;
+  let newNonceAttr = {'N': newNonce.toString()};
+  newNonceItem.NextNonce = newNonceAttr;
+  await putRawNonceItem(newNonceItem);
+}
+
+async function getNextNonceEthereum():Promise<number> {
+  return await getNextNonceForChain(Chains.Names.Ethereum);
+}
+
+async function incrementNextNonceEthereum(currentNonce:number) {
+  await incrementNextNonceForChain(Chains.Names.Ethereum, currentNonce);
+}
