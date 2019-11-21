@@ -2,11 +2,12 @@ import { AWS, deployTableName, nonceTableName } from '../env';
 import { addAwsPromiseRetries } from '../common';
 import Chains from '@eximchain/api-types/spec/chains';
 import { DeployArgs, DeployItem, DeployStates, SourceProviders } from '@eximchain/ipfs-ens-types/spec/deployment';
-import { PutItemInputAttributeMap } from 'aws-sdk/clients/dynamodb';
+import { PutItemInputAttributeMap, ScanInput } from 'aws-sdk/clients/dynamodb';
 
 const ddb = new AWS.DynamoDB({apiVersion: '2012-08-10'});
 
 export const DynamoDB = {
+  listDeployItems,
   initDeployItem,
   getDeployItem,
   updateDeployItem,
@@ -47,10 +48,15 @@ function initDeployItem(deployArgs:DeployArgs) {
  * Get the deserialized DeployItem by ensName.
  * @param ensName 
  */
-async function getDeployItem(ensName:string) {
+async function getDeployItem(ensName:string):Promise<DeployItem | null> {
   const ddbItem = await getRawDeployItem(ensName);
   if (!ddbItem.Item) return null;
   return deployItemFromDDB(ddbItem.Item);
+}
+
+async function listDeployItems():Promise<DeployItem[]> {
+  const ddbItems = await listRawDeployItems();
+  return ddbItems.Items ? ddbItems.Items.map(deployItemFromDDB) : [];
 }
 
 type DeployUpdateFxn = (item:DeployItem) => DeployItem;
@@ -150,6 +156,14 @@ function getRawDeployItem(ensName:string) {
   };
 
   return addAwsPromiseRetries(() => ddb.getItem(getItemParams).promise(), maxRetries);
+}
+
+async function listRawDeployItems() {
+  let maxRetries = 5;
+  const params:ScanInput = {
+    TableName: deployTableName
+  }
+  return addAwsPromiseRetries(() => ddb.scan(params).promise(), maxRetries);
 }
 
 function putRawDeployItem(item:PutItemInputAttributeMap) {

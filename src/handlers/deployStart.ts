@@ -6,7 +6,6 @@ import { userErrorResponse, unexpectedErrorResponse, successResponse, HttpMethod
 
 const DeployProxyApi = async (event: APIGatewayEvent) => {
   console.log("DeployStart request: " + JSON.stringify(event));
-  const deployName = event.pathParameters['proxy'];
   const method = event.httpMethod.toUpperCase() as HttpMethods.ANY;
   switch (method) {
     case 'OPTIONS':
@@ -16,7 +15,12 @@ const DeployProxyApi = async (event: APIGatewayEvent) => {
       const authToken = event.headers['Authorization']
       return createDeploy(body, authToken);
     case 'GET':
-      return getDeploy(deployName);
+      if (event.pathParameters) {
+        const deployName = event.pathParameters['proxy'];
+        return getDeploy(deployName);
+      } else {
+        return listDeploys()
+      }
     default:
       return userErrorResponse({ message: `Unrecognized HTTP method: ${method}` })
   }
@@ -45,6 +49,19 @@ async function createDeploy(args: any, oauthToken: string) {
     const pipelineName = `ipfs-ens-builder-${deploymentSuffix}`;
     const createdPipeline = await CodePipeline.createDeploy(ensName, pipelineName, packageDir, buildDir, oauthToken, owner, repo, branch)
     return successResponse({ newItem, createdBucket, createdPipeline });
+  } catch (err) {
+    return unexpectedErrorResponse(err);
+  }
+}
+
+async function listDeploys(){
+  // TODO: Make this search via username
+  try {
+    const items = await DynamoDB.listDeployItems();
+    const result = {
+      items, count: items.length
+    }
+    return successResponse(result);
   } catch (err) {
     return unexpectedErrorResponse(err);
   }
