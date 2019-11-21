@@ -28,8 +28,9 @@ NoConfigAWS.config.update({region: awsRegion});
 
 export const AWS = NoConfigAWS;
 
-module.exports = { 
+export default {
     AWS, awsRegion, ethKey, ipfsEndpoint, ensContractAddress,
     ensRootDomain, defaultGasPrice, githubClientId, 
-    githubClientSecret, artifactBucket, nonceTableName
-};
+    githubClientSecret, artifactBucket, nonceTableName, 
+    deployTableName, deployIpfsFxnName
+}
