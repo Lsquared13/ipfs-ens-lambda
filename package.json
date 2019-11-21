@@ -32,7 +32,8 @@
     "node-zip": "^1.1.1",
     "request-promise-native": "^1.0.8",
     "uuid": "^3.3.3",
-    "web3": "^1.2.3"
+    "web3": "^1.2.3",
+    "websocket": "^1.0.30"
   },
   "devDependencies": {
     "@types/uuid": "^3.4.6",
