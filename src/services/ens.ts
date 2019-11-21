@@ -4,8 +4,10 @@ import { web3Provider, web3 } from './web3';
 import {ethAddress, defaultGasPrice} from '../env';
 
 // @ts-ignore No types available yet for resolver
-const RESOLVER_ABI = require('@ensdomains/resolver/build/contracts/Resolver.json')
-
+let RESOLVER_ABI = require('@ensdomains/resolver/build/contracts/Resolver.json')
+console.log('typeof RESOLVER_ABI at start: ',RESOLVER_ABI);
+RESOLVER_ABI = JSON.parse(RESOLVER_ABI);
+console.log('RESOLVER_ABI after parse: ',RESOLVER_ABI);
 // Address of public ENS resolver
 const PUBLIC_ENS_RESOLVER_ADDR = '0x226159d592E2b063810a10Ebf6dcbADA94Ed68b8';
 
