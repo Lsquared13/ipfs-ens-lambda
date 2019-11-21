@@ -1,7 +1,7 @@
 import { AWS, deployTableName, nonceTableName } from '../env';
 import { addAwsPromiseRetries } from '../common';
 import Chains from '@eximchain/api-types/spec/chains';
-import { DeployArgs, DeployItem, DeployStates } from '@eximchain/ipfs-ens-types/spec/deployment';
+import { DeployArgs, DeployItem, DeployStates, SourceProviders } from '@eximchain/ipfs-ens-types/spec/deployment';
 import { PutItemInputAttributeMap } from 'aws-sdk/clients/dynamodb';
 
 const ddb = new AWS.DynamoDB({apiVersion: '2012-08-10'});
@@ -92,36 +92,53 @@ function serializeDeployItemKey(ensName:string) {
 
 function ddbFromDeployItem(deployItem:DeployItem) {
   // Gather parameters
-  const { buildDir, branch, ensName, owner, repo, createdAt, updatedAt } = deployItem;
+  const { 
+    buildDir, branch, ensName, owner, repo, createdAt, updatedAt,
+    username, state, codepipelineName, transitions, sourceProvider,
+    packageDir
+  } = deployItem;
 
   // Add required parameters
   const stringAttr = (val:string) => ({ S : val });
   const dbItem:PutItemInputAttributeMap = {
     'BuildDir': stringAttr(buildDir),
+    'PackageDir': stringAttr(packageDir),
+    'SourceProvider': stringAttr(sourceProvider),
     'Branch': stringAttr(branch),
     'Owner': stringAttr(owner),
     'Repo': stringAttr(repo),
     'EnsName': stringAttr(ensName),
     'CreatedAt': stringAttr(createdAt),
-    'UpdatedAt': stringAttr(updatedAt)
+    'UpdatedAt': stringAttr(updatedAt),
+    'Username': stringAttr(username),
+    'Transitions': stringAttr(JSON.stringify(transitions)),
+    'State': stringAttr(state),
+    'CodepipelineName': stringAttr(codepipelineName)
   }
-
-  // Add optional parameters once we have em
 
   return dbItem;
 }
 
-function deployItemFromDDB(dbItem:PutItemInputAttributeMap) {
-  const { BuildDir, Owner, Repo, Branch, EnsName, CreatedAt, UpdatedAt } = dbItem;
+function deployItemFromDDB(dbItem:PutItemInputAttributeMap):DeployItem {
+  const { 
+    BuildDir, Owner, Repo, Branch, EnsName, CreatedAt, UpdatedAt, Username,
+    PackageDir, Transitions, State, CodepipelineName, SourceProvider
+  } = dbItem;
   const deployItem = {
-    buildDir: BuildDir.S,
-    owner: Owner.S,
-    repo: Repo.S,
-    branch: Branch.S,
-    ensName: EnsName.S,
-    createdAt: CreatedAt.S,
-    updatedAt: UpdatedAt.S
-  } as DeployItem;
+    buildDir: BuildDir.S as string,
+    packageDir: PackageDir.S as string,
+    owner: Owner.S as string,
+    repo: Repo.S as string,
+    branch: Branch.S as string,
+    ensName: EnsName.S as string,
+    createdAt: CreatedAt.S as string,
+    updatedAt: UpdatedAt.S as string,
+    username: Username.S as string,
+    transitions: JSON.parse(Transitions.S as string),
+    state: State.S as DeployStates,
+    codepipelineName: CodepipelineName.S as string,
+    sourceProvider: SourceProvider.S as SourceProviders
+  };
   return deployItem;
 }
 
