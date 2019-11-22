@@ -4,8 +4,9 @@ import { web3Provider, web3 } from './web3';
 import {ethAddress, defaultGasPrice} from '../env';
 
 // @ts-ignore No types available yet for resolver
-let RESOLVER_ABI = require('@ensdomains/resolver/build/contracts/Resolver.json')
-console.log('typeof RESOLVER_ABI at start: ',typeof RESOLVER_ABI);
+let RESOLVER_CONTRACT = require('@ensdomains/resolver/build/contracts/Resolver.json');
+let RESOLVER_ABI = RESOLVER_CONTRACT.abi;
+
 // Address of public ENS resolver
 const PUBLIC_ENS_RESOLVER_ADDR = '0x226159d592E2b063810a10Ebf6dcbADA94Ed68b8';
 
@@ -15,7 +16,7 @@ const ens = new ENS(web3Provider);
 
 //TODO: fetch gas price from eth gas station fall back on default
 let ethGasEstimate;
-var ensResolver = new web3.eth.Contract(RESOLVER_ABI.abi, PUBLIC_ENS_RESOLVER_ADDR, {
+var ensResolver = new web3.eth.Contract(RESOLVER_ABI, PUBLIC_ENS_RESOLVER_ADDR, {
   from: ethAddress, // default from address
   gasPrice: ethGasEstimate? ethGasEstimate: defaultGasPrice // default gas price in wei, 20 gwei in this case
 });
