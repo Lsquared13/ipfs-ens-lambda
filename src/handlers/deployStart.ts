@@ -30,15 +30,13 @@ async function createDeploy(args: any, oauthToken: string) {
   if (!isDeployArgs(args)) return userErrorResponse({
     message: `Please include all of the required keys: ${Object.keys(newDeployArgs()).join(', ')}`
   })
-  const { ensName, packageDir, buildDir, owner, repo, branch } = args;
-
   try {
+    const { ensName, packageDir, buildDir, owner, repo, branch } = args;
     const deploymentSuffix = uuid();
     const username = 'TODO: Connect authorizer';
     const pipelineName = `ipfs-ens-builder-${deploymentSuffix}`;
     const newItem = await DynamoDB.initDeployItem(args, username, pipelineName);    
     const createdPipeline = await CodePipeline.createDeploy(ensName, pipelineName, packageDir, buildDir, oauthToken, owner, repo, branch)
-
     return successResponse({ newItem, createdPipeline });
   } catch (err) {
     return unexpectedErrorResponse(err);

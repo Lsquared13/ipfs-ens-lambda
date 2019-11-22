@@ -26,7 +26,6 @@ export default DynamoDB;
 function initDeployItem(deployArgs:DeployArgs, username:string, codepipelineName:string) {
   let maxRetries = 5;
   let now = new Date().toString();
-  // TODO: Pipe through actual values for username and codepipelineName
   let deployItem = Object.assign(deployArgs, {
     createdAt: now,
     updatedAt: now,
