@@ -36,6 +36,7 @@ const ensLib = new ENS(web3Provider);
 
 //TODO: fetch gas price from eth gas station fall back on default
 let ethGasEstimate;
+// @ts-ignore Typescript doesn't know that these defaults can be set as a partial
 var ensResolver = new web3.eth.Contract(RESOLVER_ABI, PUBLIC_ENS_RESOLVER_ADDR, {
   from: ethAddress, // default from address
   gasPrice: ethGasEstimate? ethGasEstimate: defaultGasPrice // default gas price in wei, 20 gwei in this case
@@ -55,8 +56,9 @@ export async function isNameAvailable(name:string) {
   try {
     //Register the subdomain and assign the root domain address as owner to allow us to manage
     const domain = `${name}.eth`
-    
-    const result = await ensLib.resolver(domain).addr()
+    console.log(ensLib.resolver(domain));
+    const resolver = await ensLib.resolver(domain);
+    const result = await resolver.addr();
     
     return result;
     
