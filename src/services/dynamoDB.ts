@@ -23,17 +23,16 @@ export default DynamoDB;
  * values to now.
  * @param deployArgs 
  */
-function initDeployItem(deployArgs:DeployArgs) {
+function initDeployItem(deployArgs:DeployArgs, username:string, codepipelineName:string) {
   let maxRetries = 5;
   let now = new Date().toString();
   // TODO: Pipe through actual values for username and codepipelineName
   let deployItem = Object.assign(deployArgs, {
     createdAt: now,
     updatedAt: now,
-    username: 'TODO',
     state: DeployStates.FETCHING_SOURCE,
-    codepipelineName: 'TODO',
-    transitions: {}
+    transitions: {},
+    username, codepipelineName
   });
   let ddbItem = ddbFromDeployItem(deployItem);
   let putItemParams = {

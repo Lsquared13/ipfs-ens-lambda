@@ -33,22 +33,13 @@ async function createDeploy(args: any, oauthToken: string) {
   const { ensName, packageDir, buildDir, owner, repo, branch } = args;
 
   try {
-    // Initialize DeployItem in DynamoDB
     const deploymentSuffix = uuid();
-    const newItem = await DynamoDB.initDeployItem(args);
-    // Bailing out of real app logic for testing purposes, just make a Dynamo record.
-    return successResponse({ newItem });
-    throw new Error(`Bailing out of logic for testing, deployStart received following arg body: ${JSON.stringify(args, null, 2)}`);
-
-    // Create new CodePipeline's artifact bucket
-    const artifactBucketname = `ipfs-ens-artfacts-${deploymentSuffix}`;
-    const createdBucket = await S3.createBucket(artifactBucketname);
-
-    // Create the CodePipeline with GitHub & S3 Source
-    // based on the provided owner/repo/branch.
+    const username = 'TODO: Connect authorizer';
     const pipelineName = `ipfs-ens-builder-${deploymentSuffix}`;
+    const newItem = await DynamoDB.initDeployItem(args, username, pipelineName);    
     const createdPipeline = await CodePipeline.createDeploy(ensName, pipelineName, packageDir, buildDir, oauthToken, owner, repo, branch)
-    return successResponse({ newItem, createdBucket, createdPipeline });
+
+    return successResponse({ newItem, createdPipeline });
   } catch (err) {
     return unexpectedErrorResponse(err);
   }
