@@ -4,8 +4,9 @@
   "description": "AWS Lambda functions for IPFS-ENS deployer",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "sh ./lambda-build.sh ipfs-ens-lambda.zip"
+    "test": "jest --config jestconfig.json",
+    "build": "sh ./lambda-build.sh ipfs-ens-lambda.zip",
+    "coverage": "jest --coverage"
   },
   "repository": {
     "type": "git",
@@ -23,7 +24,6 @@
     "@octokit/auth": "^1.1.1",
     "@octokit/rest": "^16.35.0",
     "@types/aws-sdk": "^2.7.0",
-    "@types/node": "^12.0.2",
     "@types/request-promise-native": "^1.0.17",
     "eth-ens-namehash": "^2.0.8",
     "ethereum-ens": "^0.7.8",
@@ -31,10 +31,18 @@
     "node-zip": "^1.1.1",
     "request-promise-native": "^1.0.8",
     "uuid": "^3.3.3",
-    "web3": "^1.2.3"
+    "web3": "1.2.4"
   },
   "devDependencies": {
+    "@types/jest": "^24.0.23",
+    "@types/node": "^12.12.11",
     "@types/uuid": "^3.4.6",
-    "@types/web3": "^1.2.2"
+    "@types/web3": "^1.2.2",
+    "casual": "^1.6.2",
+    "chai": "^4.2.0",
+    "jest": "^24.9.0",
+    "ts-jest": "^24.1.0",
+    "ts-node": "^8.4.1",
+    "typescript": "^3.7.2"
   }
 }

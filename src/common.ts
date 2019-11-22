@@ -33,8 +33,8 @@ export function addAwsPromiseRetries<ReturnType = any>(promiseGenerator:()=>Prom
     return p;
 }
 
-const logSuccess = (stage:string, res:any) => { console.log(`Successfully completed ${stage}; result: `, res) }
-const logErr = (stage:string, err:any) => { console.log(`Error on ${stage}: `, err) }
+export const logSuccess = (stage:string, res:any) => { console.log(`Successfully completed ${stage}; result: `, res) }
+export const logErr = (stage:string, err:any) => { console.log(`Error on ${stage}: `, err) }
 
 export async function callAndLog<ReturnType = any>(stage:string, promise:Promise<ReturnType>) {
     try {

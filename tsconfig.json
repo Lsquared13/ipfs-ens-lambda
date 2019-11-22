@@ -1,5 +1,5 @@
 {
-  "include": ["./src/**/*"],
+  "include": ["./src/**/*", "__tests__/**/*"],
   "exclude": ["node_modules", "build", "./types"],
   "compileOnSave": true,
   "compilerOptions": {
@@ -11,11 +11,15 @@
       "inlineSourceMap": true,
       "strict": true,             // Strict types, eg. prohibits `var x=0; x=null`
       "alwaysStrict": true,        // Enable JavaScript's "use strict" mode
-      "types" : ["node"],
+      "types" : ["node", "jest"],
       "outDir": "build",
       "sourceRoot": "src",
       "allowSyntheticDefaultImports": true,
       "esModuleInterop": true,
       "typeRoots" : ["./types", "./node_modules/@types"]
+    },
+    "jest": {
+      "moduleFileExtensions": ["js", "ts"],
+      "moduleDirectories": ["node_modules", "bower_components", "shared"]
     }
 }
