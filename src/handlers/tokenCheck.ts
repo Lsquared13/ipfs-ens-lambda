@@ -7,7 +7,9 @@ const TokenCheck = async (event: APIGatewayAuthorizerEvent, content: any, callba
   try {
     // If this await resolves, the token is valid.
     const GitHub = makeAppGitHub();
+    console.log(`Attempting to check following access_token: ${token}`);
     const tokenInfo = await GitHub.apps.checkToken({ access_token: token, client_id: githubClientId })
+    console.log('Found following tokenInfo: ',tokenInfo);
     callback(null, generatePolicy('user', 'Allow', event.methodArn, {
       // Including this ensures that the authorized handler (deployStart)
       // already has all of the user's profile data (username, email, 
