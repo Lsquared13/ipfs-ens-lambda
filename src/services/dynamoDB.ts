@@ -52,15 +52,8 @@ async function getDeployItem(ensName:string):Promise<DeployItem | null> {
   return deployItemFromDDB(ddbItem.Item);
 }
 
-/**
- * TODO: Currently ignores username argument, make it
- * actually filter once we're getting the username from
- * the authorizer.
- * 
- * @param username 
- */
 async function listDeployItems(username:string):Promise<DeployItem[]> {
-  const ddbItems = await listRawDeployItems();
+  const ddbItems = await listRawDeployItems(username);
   return ddbItems.Items ? ddbItems.Items.map(deployItemFromDDB) : [];
 }
 
@@ -163,7 +156,14 @@ function getRawDeployItem(ensName:string) {
   return addAwsPromiseRetries(() => ddb.getItem(getItemParams).promise(), maxRetries);
 }
 
-async function listRawDeployItems() {
+/**
+ * TODO: Currently ignores username argument, make it
+ * actually filter once we're getting the username from
+ * the authorizer.
+ * 
+ * @param username 
+ */
+async function listRawDeployItems(username:string) {
   let maxRetries = 5;
   const params:ScanInput = {
     TableName: deployTableName
