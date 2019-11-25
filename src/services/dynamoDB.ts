@@ -52,7 +52,14 @@ async function getDeployItem(ensName:string):Promise<DeployItem | null> {
   return deployItemFromDDB(ddbItem.Item);
 }
 
-async function listDeployItems():Promise<DeployItem[]> {
+/**
+ * TODO: Currently ignores username argument, make it
+ * actually filter once we're getting the username from
+ * the authorizer.
+ * 
+ * @param username 
+ */
+async function listDeployItems(username:string):Promise<DeployItem[]> {
   const ddbItems = await listRawDeployItems();
   return ddbItems.Items ? ddbItems.Items.map(deployItemFromDDB) : [];
 }

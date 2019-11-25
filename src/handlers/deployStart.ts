@@ -19,7 +19,8 @@ const DeployProxyApi = async (event: APIGatewayEvent) => {
         const deployName = event.pathParameters['proxy'];
         return getDeploy(deployName);
       } else {
-        return listDeploys()
+        const username = 'TODO: Parse from event once we have auth';
+        return listDeploys(username)
       }
     default:
       return userErrorResponse({ message: `Unrecognized HTTP method: ${method}` })
@@ -43,10 +44,13 @@ async function createDeploy(args: any, oauthToken: string) {
   }
 }
 
-async function listDeploys(){
+/**
+ * @param username 
+ */
+async function listDeploys(username:string){
   // TODO: Make this search via username
   try {
-    const items = await DynamoDB.listDeployItems();
+    const items = await DynamoDB.listDeployItems(username);
     const result = {
       items, count: items.length
     }
