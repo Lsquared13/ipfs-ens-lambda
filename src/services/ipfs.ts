@@ -1,23 +1,76 @@
-import IPFSClient from 'ipfs-http-client';
+import ipfshttpclient from 'ipfs-http-client';
 import { operationNotImplemented } from '../common';
+import { resolve } from 'url';
 
+
+const ipfsClient = new ipfshttpclient('ipfs.infura.io', 5001, { protocol: 'https' });
+
+
+
+interface ipfsCreateResponse{
+  hash?: string
+  path?:string
+  size?:number
+  error?:boolean
+  errorObject?: Error
+}
 /**
  * Given a Buffer, write it to Inufra & return the `hash`
  * @param content 
  */
-async function ipfsCreate(content:Buffer):Promise<string>{
-  const ipfs = IPFSClient('ipfs.infura.io', 5001, { protocol: 'https' });
-  const results = await ipfs.add(content);
-  const hash = results[0].hash;
-  return hash;
+async function ipfsCreate(content:Buffer):Promise<ipfsCreateResponse>{
+  try{
+    const result = await ipfsClient.add(content, {pin:true});
+    const {path, hash, size} = result[0];
+    return {path, hash, size};
+
+  }catch(e){
+    return {
+      error: true,
+      errorObject: new Error(e)
+    }
+
+  }
 }
 
+interface ipfsReadResponse {
+  cat? :string
+  exists? : boolean
+  error?:boolean
+  errorObject?: Error
+
+}
 /**
  * TODO: Check if there is IPFS file at `hash`
- * @param hash 
+ * @param hash  base58 encoded string representing IPFS hash like: 'QmXEmhrMpbVvTh61FNAxP9nU7ygVtyvZA8HZDUaqQCAb66"
  */
-async function ipfsRead(hash:string) {
-  return operationNotImplemented()
+async function ipfsRead(hash:string): Promise<ipfsReadResponse> {
+  try{
+    const results = await ipfsClient.cat(`/ipfs/${hash}`,{offset:0 ,length:2})
+    const cat = results.toString();
+    const exists = cat? true: false;
+    return {
+      cat: cat,
+      exists: exists
+    }
+
+  }catch(e){
+    if (e == "Request timed out"){return {
+        exists: false,
+        error: true,
+        errorObject: new Error(e)
+      }
+    }else{
+      return {
+        exists: false,
+        error: true,
+        errorObject: new Error(e)
+      }
+    }
+    
+
+  }
+
 }
 
 /**
@@ -48,6 +101,7 @@ async function ipfsList(hash:string) {
 }
 
 export const IPFS = {
+  client: ipfsClient,
   create: ipfsCreate,
   read: ipfsRead,
   update: ipfsUpdate,

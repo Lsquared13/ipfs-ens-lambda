@@ -100,7 +100,7 @@ function DeployPipelineParams(
       },
       stages: [
         {
-          name: 'Fetch Source',
+          name: 'FetchSource',
           "actions": [
             {
               "name": "Source",

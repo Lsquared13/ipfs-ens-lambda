@@ -1,12 +1,13 @@
 import { AWS, deployTableName, nonceTableName } from '../env';
 import { addAwsPromiseRetries } from '../common';
 import Chains from '@eximchain/api-types/spec/chains';
-import { DeployArgs, DeployItem, DeployStates } from '@eximchain/ipfs-ens-types/spec/deployment';
-import { PutItemInputAttributeMap } from 'aws-sdk/clients/dynamodb';
+import { DeployArgs, DeployItem, DeployStates, SourceProviders, Transitions } from '@eximchain/ipfs-ens-types/spec/deployment';
+import { PutItemInputAttributeMap, ScanInput } from 'aws-sdk/clients/dynamodb';
 
 const ddb = new AWS.DynamoDB({apiVersion: '2012-08-10'});
 
 export const DynamoDB = {
+  listDeployItems,
   initDeployItem,
   getDeployItem,
   updateDeployItem,
@@ -22,23 +23,22 @@ export default DynamoDB;
  * values to now.
  * @param deployArgs 
  */
-function initDeployItem(deployArgs:DeployArgs) {
+function initDeployItem(deployArgs:DeployArgs, username:string, codepipelineName:string) {
   let maxRetries = 5;
   let now = new Date().toString();
-  // TODO: Pipe through actual values for username and codepipelineName
   let deployItem = Object.assign(deployArgs, {
     createdAt: now,
     updatedAt: now,
-    username: 'TODO',
     state: DeployStates.FETCHING_SOURCE,
-    codepipelineName: 'TODO',
-    transitions: {}
+    transitions: {},
+    username, codepipelineName
   });
   let ddbItem = ddbFromDeployItem(deployItem);
   let putItemParams = {
     TableName: deployTableName,
     Item: ddbItem
   }
+  console.log('Attempting to init DeployItem w/ req: ',putItemParams);
   return addAwsPromiseRetries(() => ddb.putItem(putItemParams).promise(), maxRetries);
 }
 
@@ -46,10 +46,15 @@ function initDeployItem(deployArgs:DeployArgs) {
  * Get the deserialized DeployItem by ensName.
  * @param ensName 
  */
-async function getDeployItem(ensName:string) {
+async function getDeployItem(ensName:string):Promise<DeployItem | null> {
   const ddbItem = await getRawDeployItem(ensName);
   if (!ddbItem.Item) return null;
   return deployItemFromDDB(ddbItem.Item);
+}
+
+async function listDeployItems(username:string):Promise<DeployItem[]> {
+  const ddbItems = await listRawDeployItems(username);
+  return ddbItems.Items ? ddbItems.Items.map(deployItemFromDDB) : [];
 }
 
 type DeployUpdateFxn = (item:DeployItem) => DeployItem;
@@ -91,36 +96,53 @@ function serializeDeployItemKey(ensName:string) {
 
 function ddbFromDeployItem(deployItem:DeployItem) {
   // Gather parameters
-  const { buildDir, branch, ensName, owner, repo, createdAt, updatedAt } = deployItem;
+  const { 
+    buildDir, branch, ensName, owner, repo, createdAt, updatedAt,
+    username, state, codepipelineName, transitions, sourceProvider,
+    packageDir
+  } = deployItem;
 
   // Add required parameters
   const stringAttr = (val:string) => ({ S : val });
   const dbItem:PutItemInputAttributeMap = {
     'BuildDir': stringAttr(buildDir),
+    'PackageDir': stringAttr(packageDir),
+    'SourceProvider': stringAttr(sourceProvider),
     'Branch': stringAttr(branch),
     'Owner': stringAttr(owner),
     'Repo': stringAttr(repo),
     'EnsName': stringAttr(ensName),
     'CreatedAt': stringAttr(createdAt),
-    'UpdatedAt': stringAttr(updatedAt)
+    'UpdatedAt': stringAttr(updatedAt),
+    'Username': stringAttr(username),
+    'Transitions': stringAttr(JSON.stringify(transitions)),
+    'State': stringAttr(state),
+    'CodepipelineName': stringAttr(codepipelineName)
   }
-
-  // Add optional parameters once we have em
 
   return dbItem;
 }
 
-function deployItemFromDDB(dbItem:PutItemInputAttributeMap) {
-  const { BuildDir, Owner, Repo, Branch, EnsName, CreatedAt, UpdatedAt } = dbItem;
+function deployItemFromDDB(dbItem:PutItemInputAttributeMap):DeployItem {
+  const { 
+    BuildDir, Owner, Repo, Branch, EnsName, CreatedAt, UpdatedAt, Username,
+    PackageDir, Transitions, State, CodepipelineName, SourceProvider
+  } = dbItem;
   const deployItem = {
-    buildDir: BuildDir.S,
-    owner: Owner.S,
-    repo: Repo.S,
-    branch: Branch.S,
-    ensName: EnsName.S,
-    createdAt: CreatedAt.S,
-    updatedAt: UpdatedAt.S
-  } as DeployItem;
+    buildDir: BuildDir.S as string,
+    packageDir: PackageDir.S as string,
+    owner: Owner.S as string,
+    repo: Repo.S as string,
+    branch: Branch.S as string,
+    ensName: EnsName.S as string,
+    createdAt: CreatedAt.S as string,
+    updatedAt: UpdatedAt.S as string,
+    username: Username.S as string,
+    transitions: JSON.parse(Transitions.S as string),
+    state: State.S as DeployStates,
+    codepipelineName: CodepipelineName.S as string,
+    sourceProvider: SourceProvider.S as SourceProviders
+  };
   return deployItem;
 }
 
@@ -132,6 +154,21 @@ function getRawDeployItem(ensName:string) {
   };
 
   return addAwsPromiseRetries(() => ddb.getItem(getItemParams).promise(), maxRetries);
+}
+
+/**
+ * TODO: Currently ignores username argument, make it
+ * actually filter once we're getting the username from
+ * the authorizer.
+ * 
+ * @param username 
+ */
+async function listRawDeployItems(username:string) {
+  let maxRetries = 5;
+  const params:ScanInput = {
+    TableName: deployTableName
+  }
+  return addAwsPromiseRetries(() => ddb.scan(params).promise(), maxRetries);
 }
 
 function putRawDeployItem(item:PutItemInputAttributeMap) {

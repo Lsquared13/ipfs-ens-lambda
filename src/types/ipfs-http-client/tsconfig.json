@@ -17,7 +17,6 @@
         "forceConsistentCasingInFileNames": true
     },
     "files": [
-        "index.d.ts",
-        "ipfs-http-client-tests.ts"
+        "index.d.ts"
     ]
 }
