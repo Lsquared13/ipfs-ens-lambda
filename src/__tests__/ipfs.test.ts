@@ -1,4 +1,4 @@
-import ipfs from "../src/services/ipfs"
+import ipfs from "../services/ipfs"
 import utils from "./utils/common"
 
 let dummyContent:Buffer;

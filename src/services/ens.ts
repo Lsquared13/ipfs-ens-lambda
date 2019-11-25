@@ -56,7 +56,6 @@ export async function isNameAvailable(name:string) {
   try {
     //Register the subdomain and assign the root domain address as owner to allow us to manage
     const domain = `${name}.eth`
-    console.log(ensLib.resolver(domain));
     const resolver = await ensLib.resolver(domain);
     const result = await resolver.addr();
     
