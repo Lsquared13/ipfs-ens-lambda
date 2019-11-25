@@ -3,6 +3,7 @@ import { addAwsPromiseRetries } from '../common';
 import Chains from '@eximchain/api-types/spec/chains';
 import { DeployArgs, DeployItem, DeployStates, SourceProviders, Transitions } from '@eximchain/ipfs-ens-types/spec/deployment';
 import { PutItemInputAttributeMap, ScanInput } from 'aws-sdk/clients/dynamodb';
+import lodash from 'lodash';
 
 const ddb = new AWS.DynamoDB({apiVersion: '2012-08-10'});
 
@@ -11,6 +12,15 @@ export const DynamoDB = {
   initDeployItem,
   getDeployItem,
   updateDeployItem,
+  addSourceTransition,
+  addBuildTransition,
+  addIpfsTransition,
+  addEnsRegisterTransition,
+  addEnsSetResolverTransition,
+  addEnsSetContentTransition,
+  completeEnsRegisterTransition,
+  completeEnsSetResolverTransition,
+  completeEnsSetContentTransition,
   getNextNonceEthereum,
   incrementNextNonceEthereum
 }
@@ -179,6 +189,98 @@ function putRawDeployItem(item:PutItemInputAttributeMap) {
     };
 
     return addAwsPromiseRetries(() => ddb.putItem(putItemParams).promise(), maxRetries);
+}
+
+// Transitions
+
+async function addPipelineTransition(transition:'source' | 'build', ensName:string, size:number) {
+  let now = new Date().toString();
+  let itemUpdater = (item:DeployItem) => {
+    let newItem = lodash.merge({}, item);
+    newItem.transitions[transition] = {
+      timestamp: now,
+      size: size
+    };
+    return newItem;
+  }
+
+  updateDeployItem(ensName, itemUpdater);
+}
+
+async function addSourceTransition(ensName:string, size:number) {
+  addPipelineTransition('source', ensName, size);
+}
+
+async function addBuildTransition(ensName:string, size:number) {
+  addPipelineTransition('build', ensName, size);
+}
+
+async function addIpfsTransition(ensName:string, hash:string) {
+  let now = new Date().toString();
+  let itemUpdater = (item:DeployItem) => {
+    let newItem = lodash.merge({}, item);
+    newItem.transitions.ipfs = {
+      timestamp: now,
+      hash: hash
+    };
+    return newItem;
+  }
+
+  updateDeployItem(ensName, itemUpdater);
+}
+
+async function addEnsTransition(transition:'ensRegister' | 'ensSetResolver' | 'ensSetContent',
+                                ensName:string, txHash:string, nonce:number) {
+  let now = new Date().toString();
+  let itemUpdater = (item:DeployItem) => {
+    let newItem = lodash.merge({}, item);
+    newItem.transitions[transition] = {
+      timestamp: now,
+      txHash: txHash,
+      nonce: nonce
+    };
+    return newItem;
+  }
+
+  updateDeployItem(ensName, itemUpdater);
+}
+
+async function addEnsRegisterTransition(ensName:string, txHash:string, nonce:number) {
+  addEnsTransition('ensRegister', ensName, txHash, nonce);
+}
+
+async function addEnsSetResolverTransition(ensName:string, txHash:string, nonce:number) {
+  addEnsTransition('ensSetResolver', ensName, txHash, nonce);
+}
+
+async function addEnsSetContentTransition(ensName:string, txHash:string, nonce:number) {
+  addEnsTransition('ensSetContent', ensName, txHash, nonce);
+}
+
+async function completeEnsTransition(transition:'ensRegister' | 'ensSetResolver' | 'ensSetContent',
+                                     ensName:string, blockNumber:number, confirmationTimestamp:string) {
+  let itemUpdater = (item:DeployItem) => {
+    let newItem = lodash.merge({}, item);
+    newItem.transitions[transition] = Object.assign(newItem.transitions[transition], {
+      blockNumber: blockNumber,
+      confirmationTimestamp: confirmationTimestamp
+    });
+    return newItem;
+  }
+                                    
+  updateDeployItem(ensName, itemUpdater);
+}
+
+async function completeEnsRegisterTransition(ensName:string, blockNumber:number, confirmationTimestamp:string) {
+  completeEnsTransition('ensRegister', ensName, blockNumber, confirmationTimestamp);
+}
+
+async function completeEnsSetContentTransition(ensName:string, blockNumber:number, confirmationTimestamp:string) {
+  completeEnsTransition('ensSetContent', ensName, blockNumber, confirmationTimestamp);
+}
+
+async function completeEnsSetResolverTransition(ensName:string, blockNumber:number, confirmationTimestamp:string) {
+  completeEnsTransition('ensSetResolver', ensName, blockNumber, confirmationTimestamp);
 }
 
 // Nonce Management

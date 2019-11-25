@@ -29,8 +29,7 @@ const DeployIpfs = async (event: CodePipelineEvent) => {
                 Method : "DeployEns",
                 EnsName : EnsName
               }
-            //TODO: update dynamo state and send out sqs message
-            //DynamoDB.updateDeployItem("",{})
+            DynamoDB.addIpfsTransition(EnsName, hash);
             SQS.sendMessage("DeployEns", JSON.stringify(sqsMessageBody));
             return await CodePipeline.completeJob(id);
         }
