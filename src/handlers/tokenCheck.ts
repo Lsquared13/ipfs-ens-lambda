@@ -2,24 +2,26 @@ import { makeAppGitHub, makeUserGitHub } from '../services/github';
 import { APIGatewayAuthorizerEvent } from '@eximchain/api-types/spec/events';
 import { githubClientId } from '../env';
 
-const TokenCheck = async (event: APIGatewayAuthorizerEvent, content: any, callback: Function) => {
+const TokenCheck = async (event: APIGatewayAuthorizerEvent, context: any, callback: Function) => {
   const token = event.authorizationToken as string;
   try {
     // If this await resolves, the token is valid.
-    const GitHub = makeAppGitHub();
+    const GitHub = makeUserGitHub(token);
     console.log(`Attempting to check following access_token: ${token}`);
-    const tokenInfo = await GitHub.apps.checkToken({ access_token: token, client_id: githubClientId })
-    console.log('Found following tokenInfo: ',tokenInfo);
+    
+    const userInfo = await GitHub.users.getAuthenticated();
+    console.log('Found following userInfo: ',userInfo);
     callback(null, generatePolicy('user', 'Allow', event.methodArn, {
       // Including this ensures that the authorized handler (deployStart)
       // already has all of the user's profile data (username, email, 
       // repo url) right when it's executed.
-      githubTokenInfo: JSON.stringify(tokenInfo)
+      githubTokenInfo: JSON.stringify(userInfo.data),
+      ...context
     }))
   } catch (err) {
     console.log('Error on token check: ', err);
     // TODO: Validate we got a 404, log actual errors differently
-    callback(null, generatePolicy('user', 'Deny', event.methodArn));
+    callback("Error: Invalid token");
   }
 }
 interface IAMStatement {
