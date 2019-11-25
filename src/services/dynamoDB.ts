@@ -2,7 +2,7 @@ import { AWS, deployTableName, nonceTableName } from '../env';
 import { addAwsPromiseRetries } from '../common';
 import Chains from '@eximchain/api-types/spec/chains';
 import { DeployArgs, DeployItem, DeployStates, SourceProviders, Transitions } from '@eximchain/ipfs-ens-types/spec/deployment';
-import { PutItemInputAttributeMap, ScanInput } from 'aws-sdk/clients/dynamodb';
+import { PutItemInputAttributeMap, ScanInput, QueryInput } from 'aws-sdk/clients/dynamodb';
 
 const ddb = new AWS.DynamoDB({apiVersion: '2012-08-10'});
 
@@ -165,10 +165,15 @@ function getRawDeployItem(ensName:string) {
  */
 async function listRawDeployItems(username:string) {
   let maxRetries = 5;
-  const params:ScanInput = {
-    TableName: deployTableName
+  const params:QueryInput = {
+    TableName: deployTableName,
+    IndexName: "UsernameIndex",
+    KeyConditionExpression: "Username = :username",
+    ExpressionAttributeValues: { 
+      ':username': { 'S' : username } 
+    }
   }
-  return addAwsPromiseRetries(() => ddb.scan(params).promise(), maxRetries);
+  return addAwsPromiseRetries(() => ddb.query(params).promise(), maxRetries);
 }
 
 function putRawDeployItem(item:PutItemInputAttributeMap) {
