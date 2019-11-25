@@ -1,5 +1,5 @@
 
-import ens from "../src/services/ens"
+import ens from "../services/ens"
 import utils from "./utils/common"
 
 const unownedSubDomain = "available.hacker.eth"

@@ -1,5 +1,4 @@
 {
-  "include": ["./src/**/*", "__tests__/**/*"],
   "exclude": ["node_modules", "build", "./types"],
   "compileOnSave": true,
   "compilerOptions": {
@@ -14,7 +13,8 @@
       "outDir": "build",
       "sourceRoot": "src",
       "allowSyntheticDefaultImports": true,
-      "esModuleInterop": true
+      "esModuleInterop": true,
+      "lib": ["es7"]
     },
     "jest": {
       "moduleFileExtensions": ["js", "ts"],
