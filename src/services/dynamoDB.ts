@@ -196,7 +196,7 @@ function putRawDeployItem(item:PutItemInputAttributeMap) {
 async function addPipelineTransition(transition:'source' | 'build', ensName:string, size:number) {
   let now = new Date().toString();
   let itemUpdater = (item:DeployItem) => {
-    let newItem = lodash.merge({}, item);
+    let newItem = lodash.cloneDeep(item);
     newItem.transitions[transition] = {
       timestamp: now,
       size: size
@@ -218,7 +218,7 @@ async function addBuildTransition(ensName:string, size:number) {
 async function addIpfsTransition(ensName:string, hash:string) {
   let now = new Date().toString();
   let itemUpdater = (item:DeployItem) => {
-    let newItem = lodash.merge({}, item);
+    let newItem = lodash.cloneDeep(item);
     newItem.transitions.ipfs = {
       timestamp: now,
       hash: hash
@@ -233,7 +233,7 @@ async function addEnsTransition(transition:'ensRegister' | 'ensSetResolver' | 'e
                                 ensName:string, txHash:string, nonce:number) {
   let now = new Date().toString();
   let itemUpdater = (item:DeployItem) => {
-    let newItem = lodash.merge({}, item);
+    let newItem = lodash.cloneDeep(item);
     newItem.transitions[transition] = {
       timestamp: now,
       txHash: txHash,
@@ -260,7 +260,7 @@ async function addEnsSetContentTransition(ensName:string, txHash:string, nonce:n
 async function completeEnsTransition(transition:'ensRegister' | 'ensSetResolver' | 'ensSetContent',
                                      ensName:string, blockNumber:number, confirmationTimestamp:string) {
   let itemUpdater = (item:DeployItem) => {
-    let newItem = lodash.merge({}, item);
+    let newItem = lodash.cloneDeep(item);
     newItem.transitions[transition] = Object.assign(newItem.transitions[transition], {
       blockNumber: blockNumber,
       confirmationTimestamp: confirmationTimestamp
