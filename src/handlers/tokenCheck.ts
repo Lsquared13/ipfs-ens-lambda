@@ -19,7 +19,7 @@ const TokenCheck = async (event: APIGatewayAuthorizerEvent, content: any, callba
   } catch (err) {
     console.log('Error on token check: ', err);
     // TODO: Validate we got a 404, log actual errors differently
-    callback("Error: Invalid Token");
+    callback(null, generatePolicy('user', 'Deny', event.methodArn));
   }
 }
 interface IAMStatement {
