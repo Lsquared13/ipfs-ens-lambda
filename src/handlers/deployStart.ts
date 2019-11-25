@@ -8,7 +8,7 @@ const DeployProxyApi = async (event: APIGatewayEvent) => {
   console.log("DeployStart request: " + JSON.stringify(event));
   const method = event.httpMethod.toUpperCase() as HttpMethods.ANY;
   if (method === 'OPTIONS') return successResponse({});
-  const user:GitTypes.User = JSON.parse(event.requestContext.authorizer.githubTokenInfo)
+  const user:GitTypes.User = JSON.parse(event.requestContext.authorizer.githubUserInfo)
   const username = user.name;
   switch (method) {
     case 'POST':

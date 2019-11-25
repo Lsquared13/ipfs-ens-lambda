@@ -15,7 +15,7 @@ const TokenCheck = async (event: APIGatewayAuthorizerEvent, context: any, callba
       // Including this ensures that the authorized handler (deployStart)
       // already has all of the user's profile data (username, email, 
       // repo url) right when it's executed.
-      githubTokenInfo: JSON.stringify(userInfo.data),
+      githubUserInfo: JSON.stringify(userInfo.data),
       ...context
     }))
   } catch (err) {
