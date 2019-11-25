@@ -12,9 +12,7 @@ rm -f $BUNDLE_NAME
 
 # npx makes command work even if tsc isn't installed
 npx -p typescript@3.6.3 tsc
-ls
 cd build
-ls
 zip -r ../$BUNDLE_NAME *
 cd ..
 
