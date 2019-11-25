@@ -2,7 +2,8 @@
   "name": "ipfs-ens-lambda",
   "version": "0.0.2",
   "description": "AWS Lambda functions for IPFS-ENS deployer",
-  "main": "index.js",
+  "main": "build/index.js",
+  "types": "src/index.ts",
   "scripts": {
     "test": "jest --config jestconfig.json",
     "build": "sh ./lambda-build.sh ipfs-ens-lambda.zip",
