@@ -1,9 +1,10 @@
 import {
   AWS, pipelineRoleArn, artifactBucket, codebuildBuildId,
-  deployIpfsFxnName
+  deployIpfsFxnName, transitionFxnName
 } from '../env';
 import { CreatePipelineInput } from 'aws-sdk/clients/codepipeline';
 import { addAwsPromiseRetries } from '../common';
+import { Transitions } from '@eximchain/ipfs-ens-types/spec/deployment';
 
 const codepipeline = new AWS.CodePipeline();
 
@@ -100,7 +101,7 @@ function DeployPipelineParams(
       },
       stages: [
         {
-          name: 'FetchSource',
+          "name": 'FetchSource',
           "actions": [
             {
               "name": "Source",
@@ -122,9 +123,25 @@ function DeployPipelineParams(
                 "OAuthToken": oauthGithubToken
               },
               "runOrder": 1
+            },
+            {
+              "name": "Transition",
+              "actionTypeId": {
+                "category": "Invoke",
+                "owner": "AWS",
+                "version": "1",
+                "provider": "Lambda"
+              },
+              "configuration": {
+                "FunctionName": transitionFxnName,
+                "UserParameters": JSON.stringify({
+                    EnsName: ensName,
+                    Transition: Transitions.Names.All.SOURCE
+                })
+              },
+              "runOrder": 2
             }
           ]
-
         },
         {
           "name": "BuildSource",
@@ -163,6 +180,23 @@ function DeployPipelineParams(
                 )
               },
               "runOrder": 1
+            },
+            {
+              "name": "Transition",
+              "actionTypeId": {
+                "category": "Invoke",
+                "owner": "AWS",
+                "version": "1",
+                "provider": "Lambda"
+              },
+              "configuration": {
+                "FunctionName": transitionFxnName,
+                "UserParameters": JSON.stringify({
+                    EnsName:  ensName,
+                    Transition: Transitions.Names.All.BUILD
+                })
+              },
+              "runOrder": 2
             }
           ]
         },
