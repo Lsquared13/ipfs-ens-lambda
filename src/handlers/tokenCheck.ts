@@ -1,6 +1,5 @@
-import { makeAppGitHub, makeUserGitHub } from '../services/github';
+import { makeUserGitHub } from '../services/github';
 import { APIGatewayAuthorizerEvent } from '@eximchain/api-types/spec/events';
-import { githubClientId, authorizedMethods } from '../env';
 
 const TokenCheck = async (event: APIGatewayAuthorizerEvent, context: any, callback: Function) => {
   const token = event.authorizationToken as string;
@@ -11,7 +10,7 @@ const TokenCheck = async (event: APIGatewayAuthorizerEvent, context: any, callba
     
     const userInfo = await GitHub.users.getAuthenticated();
     console.log('Found following userInfo: ',userInfo);
-    callback(null, generatePolicy('user', 'Allow', {
+    callback(null, generatePolicy('user', 'Allow', event.methodArn, {
       // Including this ensures that the authorized handler (deployStart)
       // already has all of the user's profile data (username, email, 
       // repo url) right when it's executed.
@@ -46,19 +45,22 @@ interface AuthorizerResponse {
 }
 // Help function to generate an IAM policy, courtesy of
 // https://github.com/awsdocs/amazon-api-gateway-developer-guide/blob/master/doc_source/apigateway-use-lambda-authorizer.md#example-create-a-token-based-lambda-authorizer-function
-var generatePolicy = function (principalId: string, effect: 'Allow' | 'Deny', context?: AuthContext) {
+var generatePolicy = function (principalId: string, effect: 'Allow' | 'Deny', resource: string, context?: AuthContext) {
   var authResponse = {} as AuthorizerResponse;
-  var methods:string[] = JSON.parse(authorizedMethods);
-  console.log('methods in generatePolicy: ',methods);
-  console.log('typeof methods: ',typeof methods);
+  let baseApiArn = `${resource.split('/')[0]}/*/`;
+  const resources = [
+    `${baseApiArn}/GET/deployment`,
+    `${baseApiArn}/*/deployment/*`
+  ]
+
   authResponse.principalId = principalId;
-  if (effect) {
+  if (effect && resource) {
     const policyDocument: PolicyDocument = {
       Version: '2012-10-17',
-      Statement: methods.map(methodArn => ({
+      Statement: resources.map(eachResource => ({
         Action: 'execute-api:Invoke',
         Effect: effect,
-        Resource: methodArn
+        Resource: eachResource
       }))
     };
     authResponse.policyDocument = policyDocument;
