@@ -1,9 +1,7 @@
-import { CodePipeline, S3, SQS , DynamoDB} from '../services';
+import { CodePipeline, DynamoDB} from '../services';
 import { ResponseOptions } from '@eximchain/api-types/spec/responses';
 import { CodePipelineEvent } from '@eximchain/api-types/spec/events';
 import { Transitions } from '@eximchain/ipfs-ens-types/spec/deployment';
-import  ipfs from '../services/ipfs'
-import {logSuccess} from "../common"
 
 const PipelineTransition = async (event: CodePipelineEvent) => {
     let responseOpts: ResponseOptions = {}
