@@ -193,7 +193,7 @@ function putRawDeployItem(item:PutItemInputAttributeMap) {
 
 // Transitions
 
-async function addPipelineTransition(transition:'source' | 'build', ensName:string, size:number) {
+async function addPipelineTransition(transition:Transitions.Names.Pipeline, ensName:string, size:number) {
   let now = new Date().toString();
   let itemUpdater = (item:DeployItem) => {
     let newItem = lodash.cloneDeep(item);
@@ -208,18 +208,18 @@ async function addPipelineTransition(transition:'source' | 'build', ensName:stri
 }
 
 async function addSourceTransition(ensName:string, size:number) {
-  addPipelineTransition('source', ensName, size);
+  addPipelineTransition(Transitions.Names.All.SOURCE, ensName, size);
 }
 
 async function addBuildTransition(ensName:string, size:number) {
-  addPipelineTransition('build', ensName, size);
+  addPipelineTransition(Transitions.Names.All.BUILD, ensName, size);
 }
 
 async function addIpfsTransition(ensName:string, hash:string) {
   let now = new Date().toString();
   let itemUpdater = (item:DeployItem) => {
     let newItem = lodash.cloneDeep(item);
-    newItem.transitions.ipfs = {
+    newItem.transitions[Transitions.Names.All.IPFS] = {
       timestamp: now,
       hash: hash
     };
@@ -229,7 +229,7 @@ async function addIpfsTransition(ensName:string, hash:string) {
   updateDeployItem(ensName, itemUpdater);
 }
 
-async function addEnsTransition(transition:'ensRegister' | 'ensSetResolver' | 'ensSetContent',
+async function addEnsTransition(transition:Transitions.Names.Ens,
                                 ensName:string, txHash:string, nonce:number) {
   let now = new Date().toString();
   let itemUpdater = (item:DeployItem) => {
@@ -246,18 +246,18 @@ async function addEnsTransition(transition:'ensRegister' | 'ensSetResolver' | 'e
 }
 
 async function addEnsRegisterTransition(ensName:string, txHash:string, nonce:number) {
-  addEnsTransition('ensRegister', ensName, txHash, nonce);
+  addEnsTransition(Transitions.Names.All.ENS_REGISTER, ensName, txHash, nonce);
 }
 
 async function addEnsSetResolverTransition(ensName:string, txHash:string, nonce:number) {
-  addEnsTransition('ensSetResolver', ensName, txHash, nonce);
+  addEnsTransition(Transitions.Names.All.ENS_SET_RESOLVER, ensName, txHash, nonce);
 }
 
 async function addEnsSetContentTransition(ensName:string, txHash:string, nonce:number) {
-  addEnsTransition('ensSetContent', ensName, txHash, nonce);
+  addEnsTransition(Transitions.Names.All.ENS_SET_CONTENT, ensName, txHash, nonce);
 }
 
-async function completeEnsTransition(transition:'ensRegister' | 'ensSetResolver' | 'ensSetContent',
+async function completeEnsTransition(transition:Transitions.Names.Ens,
                                      ensName:string, blockNumber:number, confirmationTimestamp:string) {
   let itemUpdater = (item:DeployItem) => {
     let newItem = lodash.cloneDeep(item);
@@ -272,15 +272,15 @@ async function completeEnsTransition(transition:'ensRegister' | 'ensSetResolver'
 }
 
 async function completeEnsRegisterTransition(ensName:string, blockNumber:number, confirmationTimestamp:string) {
-  completeEnsTransition('ensRegister', ensName, blockNumber, confirmationTimestamp);
+  completeEnsTransition(Transitions.Names.All.ENS_REGISTER, ensName, blockNumber, confirmationTimestamp);
 }
 
 async function completeEnsSetContentTransition(ensName:string, blockNumber:number, confirmationTimestamp:string) {
-  completeEnsTransition('ensSetContent', ensName, blockNumber, confirmationTimestamp);
+  completeEnsTransition(Transitions.Names.All.ENS_SET_CONTENT, ensName, blockNumber, confirmationTimestamp);
 }
 
 async function completeEnsSetResolverTransition(ensName:string, blockNumber:number, confirmationTimestamp:string) {
-  completeEnsTransition('ensSetResolver', ensName, blockNumber, confirmationTimestamp);
+  completeEnsTransition(Transitions.Names.All.ENS_SET_RESOLVER, ensName, blockNumber, confirmationTimestamp);
 }
 
 // Nonce Management
