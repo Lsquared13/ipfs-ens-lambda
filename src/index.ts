@@ -1,7 +1,7 @@
 'use strict';
 import { 
     DeployEns, DeployIpfs, DeployStart, 
-    TokenCheck, TokenFetch
+    TokenCheck, TokenFetch, PipelineTransition
 } from './handlers';
 
 exports.tokenFetchHandler = TokenFetch;
@@ -13,3 +13,5 @@ exports.deployStartHandler = DeployStart
 exports.deployIpfsHandler = DeployIpfs;
 
 exports.deployEnsHandler = DeployEns;
+
+exports.pipelineTransition = PipelineTransition;
