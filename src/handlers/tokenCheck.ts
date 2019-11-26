@@ -11,7 +11,7 @@ const TokenCheck = async (event: APIGatewayAuthorizerEvent, context: any, callba
     
     const userInfo = await GitHub.users.getAuthenticated();
     console.log('Found following userInfo: ',userInfo);
-    callback(null, generatePolicy('user', 'Allow', event.methodArn, {
+    callback(null, generatePolicy('user', 'Allow', '*', {
       // Including this ensures that the authorized handler (deployStart)
       // already has all of the user's profile data (username, email, 
       // repo url) right when it's executed.
