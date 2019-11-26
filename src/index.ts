@@ -14,4 +14,4 @@ exports.deployIpfsHandler = DeployIpfs;
 
 exports.deployEnsHandler = DeployEns;
 
-exports.pipelineTransition = PipelineTransition;
+exports.pipelineTransitionHandler = PipelineTransition;
