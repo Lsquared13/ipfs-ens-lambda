@@ -136,7 +136,7 @@ function DeployPipelineParams(
                 "FunctionName": transitionFxnName,
                 "UserParameters": JSON.stringify({
                     EnsName: ensName,
-                    Transition: Transitions.Names.All.SOURCE
+                    TransitionName: Transitions.Names.All.SOURCE
                 })
               },
               "runOrder": 2
@@ -193,7 +193,7 @@ function DeployPipelineParams(
                 "FunctionName": transitionFxnName,
                 "UserParameters": JSON.stringify({
                     EnsName:  ensName,
-                    Transition: Transitions.Names.All.BUILD
+                    TransitionName: Transitions.Names.All.BUILD
                 })
               },
               "runOrder": 2
