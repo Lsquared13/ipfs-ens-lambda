@@ -1,6 +1,6 @@
 import { makeAppGitHub, makeUserGitHub } from '../services/github';
 import { APIGatewayAuthorizerEvent } from '@eximchain/api-types/spec/events';
-import { githubClientId } from '../env';
+import { githubClientId, authorizedMethods } from '../env';
 
 const TokenCheck = async (event: APIGatewayAuthorizerEvent, context: any, callback: Function) => {
   const token = event.authorizationToken as string;
@@ -11,7 +11,7 @@ const TokenCheck = async (event: APIGatewayAuthorizerEvent, context: any, callba
     
     const userInfo = await GitHub.users.getAuthenticated();
     console.log('Found following userInfo: ',userInfo);
-    callback(null, generatePolicy('user', 'Allow', '*', {
+    callback(null, generatePolicy('user', 'Allow', {
       // Including this ensures that the authorized handler (deployStart)
       // already has all of the user's profile data (username, email, 
       // repo url) right when it's executed.
@@ -46,18 +46,20 @@ interface AuthorizerResponse {
 }
 // Help function to generate an IAM policy, courtesy of
 // https://github.com/awsdocs/amazon-api-gateway-developer-guide/blob/master/doc_source/apigateway-use-lambda-authorizer.md#example-create-a-token-based-lambda-authorizer-function
-var generatePolicy = function (principalId: string, effect: 'Allow' | 'Deny', resource: string, context?: AuthContext) {
+var generatePolicy = function (principalId: string, effect: 'Allow' | 'Deny', context?: AuthContext) {
   var authResponse = {} as AuthorizerResponse;
-
+  var methods:string[] = JSON.parse(authorizedMethods);
+  console.log('methods in generatePolicy: ',methods);
+  console.log('typeof methods: ',typeof methods);
   authResponse.principalId = principalId;
-  if (effect && resource) {
+  if (effect) {
     const policyDocument: PolicyDocument = {
       Version: '2012-10-17',
-      Statement: [{
+      Statement: methods.map(methodArn => ({
         Action: 'execute-api:Invoke',
         Effect: effect,
-        Resource: resource
-      }]
+        Resource: methodArn
+      }))
     };
     authResponse.policyDocument = policyDocument;
   }
