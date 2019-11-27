@@ -46,15 +46,13 @@ interface AuthorizerResponse {
 // Help function to generate an IAM policy, courtesy of
 // https://github.com/awsdocs/amazon-api-gateway-developer-guide/blob/master/doc_source/apigateway-use-lambda-authorizer.md#example-create-a-token-based-lambda-authorizer-function
 var generatePolicy = function (principalId: string, effect: 'Allow' | 'Deny', resource: string, context?: AuthContext) {
-  var authResponse = {} as AuthorizerResponse;
   let baseApiArn = `${resource.split('/')[0]}/*`;
   const resources = [
     `${baseApiArn}/GET/deployment`,
     `${baseApiArn}/*/deployment/*`
   ]
-  console.log('policyGenerator got resource: ',resource);
-  console.log('policyGenerator built resources: ',resources);
 
+  var authResponse = {} as AuthorizerResponse;
   authResponse.principalId = principalId;
   if (effect && resource) {
     const policyDocument: PolicyDocument = {
