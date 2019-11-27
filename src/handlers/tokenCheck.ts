@@ -3,13 +3,12 @@ import { APIGatewayAuthorizerEvent } from '@eximchain/api-types/spec/events';
 
 const TokenCheck = async (event: APIGatewayAuthorizerEvent, context: any, callback: Function) => {
   const token = event.authorizationToken as string;
+  console.log('TokenCheck processing a request');
   try {
     // If this await resolves, the token is valid.
     const GitHub = makeUserGitHub(token);
-    console.log(`Attempting to check following access_token: ${token}`);
     
     const userInfo = await GitHub.users.getAuthenticated();
-    console.log('Found following userInfo: ',userInfo);
     callback(null, generatePolicy('user', 'Allow', event.methodArn, {
       // Including this ensures that the authorized handler (deployStart)
       // already has all of the user's profile data (username, email, 
