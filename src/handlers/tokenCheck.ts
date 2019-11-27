@@ -47,7 +47,7 @@ interface AuthorizerResponse {
 // https://github.com/awsdocs/amazon-api-gateway-developer-guide/blob/master/doc_source/apigateway-use-lambda-authorizer.md#example-create-a-token-based-lambda-authorizer-function
 var generatePolicy = function (principalId: string, effect: 'Allow' | 'Deny', resource: string, context?: AuthContext) {
   var authResponse = {} as AuthorizerResponse;
-  let baseApiArn = `${resource.split('/')[0]}/*/`;
+  let baseApiArn = `${resource.split('/')[0]}/*`;
   const resources = [
     `${baseApiArn}/GET/deployment`,
     `${baseApiArn}/*/deployment/*`
