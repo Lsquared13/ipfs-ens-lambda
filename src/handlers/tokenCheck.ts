@@ -52,6 +52,8 @@ var generatePolicy = function (principalId: string, effect: 'Allow' | 'Deny', re
     `${baseApiArn}/GET/deployment`,
     `${baseApiArn}/*/deployment/*`
   ]
+  console.log('policyGenerator got resource: ',resource);
+  console.log('policyGenerator built resources: ',resources);
 
   authResponse.principalId = principalId;
   if (effect && resource) {
