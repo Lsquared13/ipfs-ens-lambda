@@ -61,12 +61,17 @@ async function listDeploys(username:string){
 async function getDeploy(deployName: string, username:string) {
   try {
     const item = await DynamoDB.getDeployItem(deployName);
-    if (!item || item.username !== username) return {
-      item, exists: false
+    if (!item || item.username !== username) {
+      return userErrorResponse({
+        item, exists: false
+      }, { 
+        errorResponseCode: 404 
+      })
+    } else {
+      return successResponse({
+        item, exists: true
+      })
     }
-    return successResponse({
-      item, exists: true
-    })
   } catch (err) {
     return unexpectedErrorResponse(err);
   }
