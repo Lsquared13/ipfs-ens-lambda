@@ -9,7 +9,7 @@ const TokenCheck = async (event: APIGatewayAuthorizerEvent, context: any, callba
     const GitHub = makeUserGitHub(token);
     
     const userInfo = await GitHub.users.getAuthenticated();
-    callback(null, generatePolicy('user', 'Allow', event.methodArn, {
+    callback(null, makeAuthorizedPolicy('user', event.methodArn, {
       // Including this ensures that the authorized handler (deployStart)
       // already has all of the user's profile data (username, email, 
       // repo url) right when it's executed.
@@ -44,7 +44,7 @@ interface AuthorizerResponse {
 }
 // Help function to generate an IAM policy, courtesy of
 // https://github.com/awsdocs/amazon-api-gateway-developer-guide/blob/master/doc_source/apigateway-use-lambda-authorizer.md#example-create-a-token-based-lambda-authorizer-function
-var generatePolicy = function (principalId: string, effect: 'Allow' | 'Deny', resource: string, context?: AuthContext) {
+var makeAuthorizedPolicy = function (principalId: string, resource: string, context?: AuthContext) {
   let baseApiArn = `${resource.split('/')[0]}/*`;
   const resources = [
     `${baseApiArn}/GET/deployment`,
@@ -53,17 +53,15 @@ var generatePolicy = function (principalId: string, effect: 'Allow' | 'Deny', re
 
   var authResponse = {} as AuthorizerResponse;
   authResponse.principalId = principalId;
-  if (effect && resource) {
-    const policyDocument: PolicyDocument = {
-      Version: '2012-10-17',
-      Statement: resources.map(eachResource => ({
-        Action: 'execute-api:Invoke',
-        Effect: effect,
-        Resource: eachResource
-      }))
-    };
-    authResponse.policyDocument = policyDocument;
-  }
+  const policyDocument: PolicyDocument = {
+    Version: '2012-10-17',
+    Statement: resources.map(eachResource => ({
+      Action: 'execute-api:Invoke',
+      Effect: 'Allow',
+      Resource: eachResource
+    }))
+  };
+  authResponse.policyDocument = policyDocument;
 
   // Optional output with custom properties of the String, Number or Boolean type.
   if (context) authResponse.context = context;
