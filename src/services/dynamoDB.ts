@@ -1,7 +1,7 @@
 import { AWS, deployTableName, nonceTableName } from '../env';
 import { addAwsPromiseRetries } from '../common';
 import Chains from '@eximchain/api-types/spec/chains';
-import { DeployArgs, DeployItem, DeployStates, SourceProviders, Transitions } from '@eximchain/ipfs-ens-types/spec/deployment';
+import { DeployArgs, DeployItem, DeployStates, SourceProviders, Transitions, nextDeployState } from '@eximchain/ipfs-ens-types/spec/deployment';
 import { PutItemInputAttributeMap, ScanInput } from 'aws-sdk/clients/dynamodb';
 import lodash from 'lodash';
 
@@ -201,6 +201,7 @@ async function addPipelineTransition(transition:Transitions.Names.Pipeline, ensN
       timestamp: now,
       size: size
     };
+    newItem.state = nextDeployState[item.state]
     return newItem;
   }
 
@@ -223,6 +224,7 @@ async function addIpfsTransition(ensName:string, hash:string) {
       timestamp: now,
       hash: hash
     };
+    newItem.state = nextDeployState[item.state];
     return newItem;
   }
 
@@ -265,6 +267,7 @@ async function completeEnsTransition(transition:Transitions.Names.Ens,
       blockNumber: blockNumber,
       confirmationTimestamp: confirmationTimestamp
     });
+    newItem.state = nextDeployState[item.state];
     return newItem;
   }
                                     
