@@ -2,7 +2,7 @@ import { AWS, deployTableName, nonceTableName } from '../env';
 import { addAwsPromiseRetries } from '../common';
 import Chains from '@eximchain/api-types/spec/chains';
 import { DeployArgs, DeployItem, DeployStates, SourceProviders, Transitions } from '@eximchain/ipfs-ens-types/spec/deployment';
-import { PutItemInputAttributeMap, ScanInput, QueryInput } from 'aws-sdk/clients/dynamodb';
+import { PutItemInputAttributeMap, QueryInput } from 'aws-sdk/clients/dynamodb';
 import lodash from 'lodash';
 
 const ddb = new AWS.DynamoDB({apiVersion: '2012-08-10'});
