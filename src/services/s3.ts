@@ -9,7 +9,8 @@ const s3 = new AWS.S3({apiVersion: '2006-03-01'});
 export const S3 = {
   downloadArtifact,
   getObject: promiseGetS3Object,
-  createBucket: promiseCreateS3Bucket
+  createBucket: promiseCreateS3Bucket,
+  checkSize: promiseGetSize
 }
 
 export default S3;
@@ -52,4 +53,14 @@ function promiseCreateS3Bucket(bucketName:string) {
       ACL: 'private'
   };
   return addAwsPromiseRetries(() => s3.createBucket(params).promise(), maxRetries);
+}
+
+async function promiseGetSize(location:S3ArtifactLocation):Promise<number | undefined> {
+  let maxRetries = 5;
+  let params = {
+    Bucket: location.bucketName,
+    Key: location.objectKey
+  }
+  const res = await addAwsPromiseRetries(() => s3.headObject(params).promise(), maxRetries);
+  return res.ContentLength
 }
