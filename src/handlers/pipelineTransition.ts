@@ -11,7 +11,6 @@ const PipelineTransition = async (event: CodePipelineEvent) => {
     let { data, id } = pipelineJob;
     
     const { artifactCredentials, inputArtifacts, actionConfiguration } = data;
-    // NOTE: Get Dapp ENS name from here add to codepipeline as action configuration for user parameters
     const { EnsName, TransitionName } = JSON.parse(actionConfiguration.configuration.UserParameters);
     let artifactLocation = inputArtifacts[0].location.s3Location;
 
