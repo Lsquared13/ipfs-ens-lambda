@@ -21,7 +21,6 @@ const getAccessToken = async(event:APIGatewayEvent) => {
   if (!body.code || typeof body.code !== 'string') {
     return userErrorResponse({ message: 'Request body must include a "code" key from OAuth redirect.'})
   }
-  console.log(`Fetching access token with code ${body.code}`);
   const accessToken = await fetchUserAccessToken(body.code);
   return successResponse({
     ...accessToken

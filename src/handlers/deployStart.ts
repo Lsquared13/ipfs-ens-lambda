@@ -1,5 +1,5 @@
 import uuid from 'uuid/v4';
-import { isDeployArgs, newDeployArgs } from '@eximchain/ipfs-ens-types/spec/deployment';
+import { isDeployArgs, newDeployArgs, GitTypes } from '@eximchain/ipfs-ens-types/spec/deployment';
 import { APIGatewayEvent } from '@eximchain/api-types/spec/events';
 import { S3, DynamoDB, CodePipeline } from '../services';
 import { userErrorResponse, unexpectedErrorResponse, successResponse, HttpMethods } from '@eximchain/api-types/spec/responses';
@@ -7,19 +7,19 @@ import { userErrorResponse, unexpectedErrorResponse, successResponse, HttpMethod
 const DeployProxyApi = async (event: APIGatewayEvent) => {
   console.log("DeployStart request: " + JSON.stringify(event));
   const method = event.httpMethod.toUpperCase() as HttpMethods.ANY;
+  if (method === 'OPTIONS') return successResponse({});
+  const user:GitTypes.User = JSON.parse(event.requestContext.authorizer.githubUserInfo)
+  const username = user.login;
   switch (method) {
-    case 'OPTIONS':
-      return successResponse({});
     case 'POST':
       const body = JSON.parse(event.body || '');
       const authToken = event.headers['Authorization']
-      return createDeploy(body, authToken);
+      return createDeploy(body, authToken, username);
     case 'GET':
       if (event.pathParameters) {
         const deployName = event.pathParameters['proxy'];
-        return getDeploy(deployName);
+        return getDeploy(deployName, username);
       } else {
-        const username = 'TODO: Parse from event once we have auth';
         return listDeploys(username)
       }
     default:
@@ -27,14 +27,13 @@ const DeployProxyApi = async (event: APIGatewayEvent) => {
   }
 }
 
-async function createDeploy(args: any, oauthToken: string) {
+async function createDeploy(args: any, oauthToken: string, username:string) {
   if (!isDeployArgs(args)) return userErrorResponse({
     message: `Please include all of the required keys: ${Object.keys(newDeployArgs()).join(', ')}`
   })
   try {
     const { ensName, packageDir, buildDir, owner, repo, branch } = args;
     const deploymentSuffix = uuid();
-    const username = 'TODO: Connect authorizer';
     const pipelineName = `ipfs-ens-builder-${deploymentSuffix}`;
     const newItem = await DynamoDB.initDeployItem(args, username, pipelineName);    
     const createdPipeline = await CodePipeline.createDeploy(ensName, pipelineName, packageDir, buildDir, oauthToken, owner, repo, branch)
@@ -48,7 +47,6 @@ async function createDeploy(args: any, oauthToken: string) {
  * @param username 
  */
 async function listDeploys(username:string){
-  // TODO: Make this search via username
   try {
     const items = await DynamoDB.listDeployItems(username);
     const result = {
@@ -60,15 +58,20 @@ async function listDeploys(username:string){
   }
 }
 
-async function getDeploy(deployName: string) {
+async function getDeploy(deployName: string, username:string) {
   try {
     const item = await DynamoDB.getDeployItem(deployName);
-    const result = item ? {
-      item, exists: true
-    } : {
+    if (!item || item.username !== username) {
+      return userErrorResponse({
         item, exists: false
-      }
-    return successResponse(result);
+      }, { 
+        errorResponseCode: 404 
+      })
+    } else {
+      return successResponse({
+        item, exists: true
+      })
+    }
   } catch (err) {
     return unexpectedErrorResponse(err);
   }
