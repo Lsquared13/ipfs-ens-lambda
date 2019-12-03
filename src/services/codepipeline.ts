@@ -123,9 +123,14 @@ function DeployPipelineParams(
                 "OAuthToken": oauthGithubToken
               },
               "runOrder": 1
-            },
+            }
+          ]
+        },
+        {
+          "name": "BuildSource",
+          "actions": [
             {
-              "name": "Transition",
+              "name": "TransitionFromSource",
               "actionTypeId": {
                 "category": "Invoke",
                 "owner": "AWS",
@@ -139,13 +144,8 @@ function DeployPipelineParams(
                     TransitionName: Transitions.Names.All.SOURCE
                 })
               },
-              "runOrder": 2
-            }
-          ]
-        },
-        {
-          "name": "BuildSource",
-          "actions": [
+              "runOrder": 1
+            },
             {
               "inputArtifacts": [
                 {
@@ -179,10 +179,10 @@ function DeployPipelineParams(
                   ]
                 )
               },
-              "runOrder": 1
+              "runOrder": 2
             },
             {
-              "name": "Transition",
+              "name": "TransitionFromBuild",
               "actionTypeId": {
                 "category": "Invoke",
                 "owner": "AWS",
@@ -196,7 +196,7 @@ function DeployPipelineParams(
                     TransitionName: Transitions.Names.All.BUILD
                 })
               },
-              "runOrder": 2
+              "runOrder": 3
             }
           ]
         },
