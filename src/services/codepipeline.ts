@@ -137,6 +137,11 @@ function DeployPipelineParams(
                 "version": "1",
                 "provider": "Lambda"
               },
+              "inputArtifacts": [
+                {
+                  "name": "SOURCE"
+                }
+              ],
               "configuration": {
                 "FunctionName": transitionFxnName,
                 "UserParameters": JSON.stringify({
@@ -189,6 +194,11 @@ function DeployPipelineParams(
                 "version": "1",
                 "provider": "Lambda"
               },
+              "inputArtifacts": [
+                {
+                  "name": "BUILD"
+                }
+              ],
               "configuration": {
                 "FunctionName": transitionFxnName,
                 "UserParameters": JSON.stringify({
