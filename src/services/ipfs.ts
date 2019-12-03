@@ -21,6 +21,7 @@ interface ipfsCreateResponse{
 async function ipfsCreate(content:Buffer):Promise<ipfsCreateResponse>{
   try{
     const result = await ipfsClient.add(content, {pin:true});
+    console.log('Result inside of ipfsCreate: ',result);
     const {path, hash, size} = result[0];
     return {path, hash, size};
 
