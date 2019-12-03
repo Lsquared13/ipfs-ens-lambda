@@ -20,6 +20,7 @@ const DeployIpfs = async (event: CodePipelineEvent) => {
         //NOTE: Compress zip ? assume its already compressed see if can optimize based on initial compression algo
         let artifact = await S3.downloadArtifact(artifactLocation, artifactCredentials);
         let result = await ipfs.create(artifact);
+        console.log('Result from ipfs.create: ',result);
         const {path, hash, size} = result;
         logSuccess("IPFS UPLOAD", hash);
         if(path && hash && size){
@@ -29,10 +30,14 @@ const DeployIpfs = async (event: CodePipelineEvent) => {
                 Method : "DeployEns",
                 EnsName : EnsName
               }
-            DynamoDB.addIpfsTransition(EnsName, hash);
-            SQS.sendMessage("DeployEns", JSON.stringify(sqsMessageBody));
+            await DynamoDB.addIpfsTransition(EnsName, hash);
+            await SQS.sendMessage("DeployEns", JSON.stringify(sqsMessageBody));
             return await CodePipeline.completeJob(id);
         }
+        console.log('IPFS Pin provided no response.');
+        console.log('path: ',path);
+        console.log('hash: ',hash);
+        console.log('size: ',size);
         throw new Error('did not recieve response from ipfs add with pin, try again later could be Infura');
     } catch (err) {
         //TODO: Write failures to a retry queue?

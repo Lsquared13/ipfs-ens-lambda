@@ -1,9 +1,10 @@
 import {
   AWS, pipelineRoleArn, artifactBucket, codebuildBuildId,
-  deployIpfsFxnName
+  deployIpfsFxnName, transitionFxnName
 } from '../env';
 import { CreatePipelineInput } from 'aws-sdk/clients/codepipeline';
 import { addAwsPromiseRetries } from '../common';
+import { Transitions } from '@eximchain/ipfs-ens-types/spec/deployment';
 
 const codepipeline = new AWS.CodePipeline();
 
@@ -100,7 +101,7 @@ function DeployPipelineParams(
       },
       stages: [
         {
-          name: 'FetchSource',
+          "name": 'FetchSource',
           "actions": [
             {
               "name": "Source",
@@ -124,11 +125,32 @@ function DeployPipelineParams(
               "runOrder": 1
             }
           ]
-
         },
         {
           "name": "BuildSource",
           "actions": [
+            {
+              "name": "TransitionFromSource",
+              "actionTypeId": {
+                "category": "Invoke",
+                "owner": "AWS",
+                "version": "1",
+                "provider": "Lambda"
+              },
+              "inputArtifacts": [
+                {
+                  "name": "SOURCE"
+                }
+              ],
+              "configuration": {
+                "FunctionName": transitionFxnName,
+                "UserParameters": JSON.stringify({
+                    EnsName: ensName,
+                    TransitionName: Transitions.Names.All.SOURCE
+                })
+              },
+              "runOrder": 1
+            },
             {
               "inputArtifacts": [
                 {
@@ -162,7 +184,29 @@ function DeployPipelineParams(
                   ]
                 )
               },
-              "runOrder": 1
+              "runOrder": 2
+            },
+            {
+              "name": "TransitionFromBuild",
+              "actionTypeId": {
+                "category": "Invoke",
+                "owner": "AWS",
+                "version": "1",
+                "provider": "Lambda"
+              },
+              "inputArtifacts": [
+                {
+                  "name": "BUILD"
+                }
+              ],
+              "configuration": {
+                "FunctionName": transitionFxnName,
+                "UserParameters": JSON.stringify({
+                    EnsName:  ensName,
+                    TransitionName: Transitions.Names.All.BUILD
+                })
+              },
+              "runOrder": 3
             }
           ]
         },

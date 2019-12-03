@@ -1,7 +1,7 @@
 import { AWS, deployTableName, nonceTableName } from '../env';
 import { addAwsPromiseRetries } from '../common';
 import Chains from '@eximchain/api-types/spec/chains';
-import { DeployArgs, DeployItem, DeployStates, SourceProviders, Transitions } from '@eximchain/ipfs-ens-types/spec/deployment';
+import { DeployArgs, DeployItem, DeployStates, SourceProviders, Transitions, nextDeployState } from '@eximchain/ipfs-ens-types/spec/deployment';
 import { PutItemInputAttributeMap, QueryInput } from 'aws-sdk/clients/dynamodb';
 import lodash from 'lodash';
 
@@ -198,47 +198,49 @@ function putRawDeployItem(item:PutItemInputAttributeMap) {
 
 // Transitions
 
-async function addPipelineTransition(transition:'source' | 'build', ensName:string, size:number) {
+async function addPipelineTransition(transition:Transitions.Names.Pipeline, ensName:string, size:number) {
   let now = new Date().toString();
   let itemUpdater = (item:DeployItem) => {
-    let newItem = lodash.merge({}, item);
+    let newItem = lodash.cloneDeep(item);
     newItem.transitions[transition] = {
       timestamp: now,
       size: size
     };
+    newItem.state = nextDeployState[item.state]
     return newItem;
   }
 
-  updateDeployItem(ensName, itemUpdater);
+  return updateDeployItem(ensName, itemUpdater);
 }
 
 async function addSourceTransition(ensName:string, size:number) {
-  addPipelineTransition('source', ensName, size);
+  return addPipelineTransition(Transitions.Names.All.SOURCE, ensName, size);
 }
 
 async function addBuildTransition(ensName:string, size:number) {
-  addPipelineTransition('build', ensName, size);
+  return addPipelineTransition(Transitions.Names.All.BUILD, ensName, size);
 }
 
 async function addIpfsTransition(ensName:string, hash:string) {
   let now = new Date().toString();
   let itemUpdater = (item:DeployItem) => {
-    let newItem = lodash.merge({}, item);
-    newItem.transitions.ipfs = {
+    let newItem = lodash.cloneDeep(item);
+    newItem.transitions[Transitions.Names.All.IPFS] = {
       timestamp: now,
       hash: hash
     };
+    newItem.state = nextDeployState[item.state];
     return newItem;
   }
 
-  updateDeployItem(ensName, itemUpdater);
+  return updateDeployItem(ensName, itemUpdater);
 }
 
-async function addEnsTransition(transition:'ensRegister' | 'ensSetResolver' | 'ensSetContent',
+async function addEnsTransition(transition:Transitions.Names.Ens,
                                 ensName:string, txHash:string, nonce:number) {
   let now = new Date().toString();
   let itemUpdater = (item:DeployItem) => {
-    let newItem = lodash.merge({}, item);
+    let newItem = lodash.cloneDeep(item);
     newItem.transitions[transition] = {
       timestamp: now,
       txHash: txHash,
@@ -247,45 +249,46 @@ async function addEnsTransition(transition:'ensRegister' | 'ensSetResolver' | 'e
     return newItem;
   }
 
-  updateDeployItem(ensName, itemUpdater);
+  return updateDeployItem(ensName, itemUpdater);
 }
 
 async function addEnsRegisterTransition(ensName:string, txHash:string, nonce:number) {
-  addEnsTransition('ensRegister', ensName, txHash, nonce);
+  return addEnsTransition(Transitions.Names.All.ENS_REGISTER, ensName, txHash, nonce);
 }
 
 async function addEnsSetResolverTransition(ensName:string, txHash:string, nonce:number) {
-  addEnsTransition('ensSetResolver', ensName, txHash, nonce);
+  return addEnsTransition(Transitions.Names.All.ENS_SET_RESOLVER, ensName, txHash, nonce);
 }
 
 async function addEnsSetContentTransition(ensName:string, txHash:string, nonce:number) {
-  addEnsTransition('ensSetContent', ensName, txHash, nonce);
+  return addEnsTransition(Transitions.Names.All.ENS_SET_CONTENT, ensName, txHash, nonce);
 }
 
-async function completeEnsTransition(transition:'ensRegister' | 'ensSetResolver' | 'ensSetContent',
+async function completeEnsTransition(transition:Transitions.Names.Ens,
                                      ensName:string, blockNumber:number, confirmationTimestamp:string) {
   let itemUpdater = (item:DeployItem) => {
-    let newItem = lodash.merge({}, item);
+    let newItem = lodash.cloneDeep(item);
     newItem.transitions[transition] = Object.assign(newItem.transitions[transition], {
       blockNumber: blockNumber,
       confirmationTimestamp: confirmationTimestamp
     });
+    newItem.state = nextDeployState[item.state];
     return newItem;
   }
                                     
-  updateDeployItem(ensName, itemUpdater);
+  return updateDeployItem(ensName, itemUpdater);
 }
 
 async function completeEnsRegisterTransition(ensName:string, blockNumber:number, confirmationTimestamp:string) {
-  completeEnsTransition('ensRegister', ensName, blockNumber, confirmationTimestamp);
+  return completeEnsTransition(Transitions.Names.All.ENS_REGISTER, ensName, blockNumber, confirmationTimestamp);
 }
 
 async function completeEnsSetContentTransition(ensName:string, blockNumber:number, confirmationTimestamp:string) {
-  completeEnsTransition('ensSetContent', ensName, blockNumber, confirmationTimestamp);
+  return completeEnsTransition(Transitions.Names.All.ENS_SET_CONTENT, ensName, blockNumber, confirmationTimestamp);
 }
 
 async function completeEnsSetResolverTransition(ensName:string, blockNumber:number, confirmationTimestamp:string) {
-  completeEnsTransition('ensSetResolver', ensName, blockNumber, confirmationTimestamp);
+  return completeEnsTransition(Transitions.Names.All.ENS_SET_RESOLVER, ensName, blockNumber, confirmationTimestamp);
 }
 
 // Nonce Management
@@ -309,12 +312,12 @@ function getRawNonceItem(chain:Chains.Names) {
 
 function putRawNonceItem(item:PutItemInputAttributeMap) {
   let maxRetries = 5;
-    let putItemParams = {
-        TableName: nonceTableName,
-        Item: item
-    };
+  let putItemParams = {
+      TableName: nonceTableName,
+      Item: item
+  };
 
-    return addAwsPromiseRetries(() => ddb.putItem(putItemParams).promise(), maxRetries);
+  return addAwsPromiseRetries(() => ddb.putItem(putItemParams).promise(), maxRetries);
 }
 
 async function getNextNonceForChain(chain:Chains.Names):Promise<number> {
@@ -333,7 +336,7 @@ async function incrementNextNonceForChain(chain:Chains.Names, currentNonce:numbe
   let newNonceItem = currentNonceItem.Item;
   let newNonceAttr = {'N': newNonce.toString()};
   newNonceItem.NextNonce = newNonceAttr;
-  await putRawNonceItem(newNonceItem);
+  return await putRawNonceItem(newNonceItem);
 }
 
 async function getNextNonceEthereum():Promise<number> {
@@ -341,5 +344,5 @@ async function getNextNonceEthereum():Promise<number> {
 }
 
 async function incrementNextNonceEthereum(currentNonce:number) {
-  await incrementNextNonceForChain(Chains.Names.Ethereum, currentNonce);
+  return await incrementNextNonceForChain(Chains.Names.Ethereum, currentNonce);
 }
