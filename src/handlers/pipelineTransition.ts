@@ -9,15 +9,15 @@ const PipelineTransition = async (event: CodePipelineEvent) => {
     
     let pipelineJob  = event['CodePipeline.job'];
     let { data, id } = pipelineJob;
-    
-    const { artifactCredentials, inputArtifacts, actionConfiguration } = data;
-    const { EnsName, TransitionName } = JSON.parse(actionConfiguration.configuration.UserParameters);
-    let artifactLocation = inputArtifacts[0].location.s3Location;
-    let artifactSize = await S3.checkSize(artifactLocation);
-    // AWS can't guarantee that the object is present, so the underlying ContentLength
-    // may be undefined.  We ensure it's a number here just so Typescript doesn't complain.
-    artifactSize = artifactSize || -1;
+
     try {
+        const { artifactCredentials, inputArtifacts, actionConfiguration } = data;
+        const { EnsName, TransitionName } = JSON.parse(actionConfiguration.configuration.UserParameters);
+        let artifactLocation = inputArtifacts[0].location.s3Location;
+        let artifactSize = await S3.checkSize(artifactLocation);
+        // AWS can't guarantee that the object is present, so the underlying ContentLength
+        // may be undefined.  We ensure it's a number here just so Typescript doesn't complain.
+        artifactSize = artifactSize || -1;
         switch (TransitionName) {
             case Transitions.Names.All.SOURCE:
                 await DynamoDB.addSourceTransition(EnsName, artifactSize);
@@ -30,6 +30,7 @@ const PipelineTransition = async (event: CodePipelineEvent) => {
         }
         return await CodePipeline.completeJob(id);
     } catch (err) {
+        console.log('Error on pipelineTransition: ',err);
         return await CodePipeline.failJob(id, err);
     }
 }
