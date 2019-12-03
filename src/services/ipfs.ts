@@ -24,7 +24,6 @@ async function ipfsCreate(content:Buffer):Promise<ipfsCreateResponse>{
     console.log('Result inside of ipfsCreate: ',result);
     const {path, hash, size} = result[0];
     return {path, hash, size};
-
   }catch(e){
     return {
       error: true,

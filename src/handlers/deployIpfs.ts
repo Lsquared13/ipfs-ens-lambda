@@ -20,6 +20,7 @@ const DeployIpfs = async (event: CodePipelineEvent) => {
         //NOTE: Compress zip ? assume its already compressed see if can optimize based on initial compression algo
         let artifact = await S3.downloadArtifact(artifactLocation, artifactCredentials);
         let result = await ipfs.create(artifact);
+        console.log('Result from ipfs.create: ',result);
         const {path, hash, size} = result;
         logSuccess("IPFS UPLOAD", hash);
         if(path && hash && size){
