@@ -1,4 +1,5 @@
 import Octokit from '@octokit/rest';
+import { oauthLoginUrl, Result as LoginUrl } from '@octokit/oauth-login-url';
 import { createOAuthAppAuth } from '@octokit/auth';
 import { githubClientId, githubClientSecret } from '../env';
 
@@ -45,4 +46,13 @@ export const fetchUserAccessToken = async (code:string) => {
     code
   });
   return await auth({ type: 'token' });
+}
+
+const REQUIRED_AUTH_SCOPES:string[] = ['read:user','repo'];
+
+export function githubLoginUrl():string {
+  return oauthLoginUrl({
+    clientId: githubClientId as string,
+    scopes: REQUIRED_AUTH_SCOPES
+  }).url;
 }

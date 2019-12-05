@@ -1,7 +1,9 @@
-import { fetchUserAccessToken } from '../services/github';
+import { fetchUserAccessToken, githubLoginUrl } from '../services/github';
 import { 
-  isHttpMethod, userErrorResponse, unexpectedErrorResponse, successResponse
+  isHttpMethod, userErrorResponse, unexpectedErrorResponse, successResponse,
+  ApiError
 } from '@eximchain/api-types/spec/responses';
+import { Login, LoginUrl } from '@eximchain/ipfs-ens-types/spec/methods/auth';
 import { APIGatewayEvent } from '@eximchain/api-types/spec/events';
 
 /**
@@ -15,16 +17,23 @@ const getAccessToken = async(event:APIGatewayEvent) => {
   if (!isHttpMethod(method)) {
     return userErrorResponse({ message: `Unrecognized HttpMethod: ${method}`})
   }
-  if (method === 'OPTIONS') return successResponse(undefined);
-  if (method !== 'POST') return userErrorResponse({ message: `Invalid HttpMethod ${method}, POST requests only.`});
-  const body = event.body = event.body ? JSON.parse(event.body) : {};
-  if (!body.code || typeof body.code !== 'string') {
-    return userErrorResponse({ message: 'Request body must include a "code" key from OAuth redirect.'})
-  }
-  const accessToken = await fetchUserAccessToken(body.code);
-  return successResponse({
-    ...accessToken
-  })
+  switch(method){
+    case 'OPTIONS':
+      return successResponse(undefined);
+    case 'POST':
+      const body = event.body = event.body ? JSON.parse(event.body) : {};
+      if (!body.code || typeof body.code !== 'string') {
+        return userErrorResponse({ message: 'Request body must include a "code" key from OAuth redirect.'})
+      }
+      const accessToken = await fetchUserAccessToken(body.code);
+      const result:Login.Result = { ...accessToken } as Login.Result;
+      return successResponse(result)
+    case 'GET':
+      const loginUrlResult:LoginUrl.Result = { loginUrl: githubLoginUrl() };
+      return successResponse(loginUrlResult)
+    default:
+        return userErrorResponse({ message: `Unimplemented HttpMethod ${method}, GET & POST requests only.` })
+  }  
 }
 
 interface AuthCode {
