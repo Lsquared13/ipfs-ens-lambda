@@ -1,7 +1,6 @@
 import { fetchUserAccessToken, githubLoginUrl } from '../services/github';
 import { 
-  isHttpMethod, userErrorResponse, unexpectedErrorResponse, successResponse,
-  ApiError
+  isHttpMethod, userErrorResponse, successResponse
 } from '@eximchain/api-types/spec/responses';
 import { Login, LoginUrl } from '@eximchain/ipfs-ens-types/spec/methods/auth';
 import { APIGatewayEvent } from '@eximchain/api-types/spec/events';
@@ -32,7 +31,7 @@ const getAccessToken = async(event:APIGatewayEvent) => {
       const loginUrlResult:LoginUrl.Result = { loginUrl: githubLoginUrl() };
       return successResponse(loginUrlResult)
     default:
-        return userErrorResponse({ message: `Unimplemented HttpMethod ${method}, GET & POST requests only.` })
+      return userErrorResponse({ message: `Unimplemented HttpMethod ${method}, GET & POST requests only.` })
   }  
 }
 
