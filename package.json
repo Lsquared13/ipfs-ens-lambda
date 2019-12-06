@@ -22,8 +22,9 @@
   "dependencies": {
     "@ensdomains/resolver": "^0.1.13",
     "@eximchain/api-types": "^1.0.4",
-    "@eximchain/ipfs-ens-types": "^1.1.0",
+    "@eximchain/ipfs-ens-types": "^1.1.2",
     "@octokit/auth": "^1.1.1",
+    "@octokit/oauth-login-url": "^2.1.2",
     "@octokit/rest": "^16.35.0",
     "@octokit/types": "^2.0.2",
     "@types/aws-sdk": "^2.7.0",
