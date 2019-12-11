@@ -35,7 +35,7 @@ export default DynamoDB;
  */
 function initDeployItem(deployArgs:DeployArgs, username:string, codepipelineName:string) {
   let maxRetries = 5;
-  let now = new Date().toString();
+  let now = new Date().toISOString();
   let deployItem = Object.assign(deployArgs, {
     createdAt: now,
     updatedAt: now,
@@ -199,7 +199,7 @@ function putRawDeployItem(item:PutItemInputAttributeMap) {
 // Transitions
 
 async function addPipelineTransition(transition:Transitions.Names.Pipeline, ensName:string, size:number) {
-  let now = new Date().toString();
+  let now = new Date().toISOString();
   let itemUpdater = (item:DeployItem) => {
     let newItem = lodash.cloneDeep(item);
     newItem.transitions[transition] = {
@@ -222,7 +222,7 @@ async function addBuildTransition(ensName:string, size:number) {
 }
 
 async function addIpfsTransition(ensName:string, hash:string) {
-  let now = new Date().toString();
+  let now = new Date().toISOString();
   let itemUpdater = (item:DeployItem) => {
     let newItem = lodash.cloneDeep(item);
     newItem.transitions[Transitions.Names.All.IPFS] = {
@@ -238,7 +238,7 @@ async function addIpfsTransition(ensName:string, hash:string) {
 
 async function addEnsTransition(transition:Transitions.Names.Ens,
                                 ensName:string, txHash:string, nonce:number) {
-  let now = new Date().toString();
+  let now = new Date().toISOString();
   let itemUpdater = (item:DeployItem) => {
     let newItem = lodash.cloneDeep(item);
     newItem.transitions[transition] = {
