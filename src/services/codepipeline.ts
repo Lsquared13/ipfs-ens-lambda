@@ -101,7 +101,7 @@ function DeployPipelineParams(
       },
       stages: [
         {
-          "name": 'FetchSource',
+          "name": Transitions.Names.All.SOURCE,
           "actions": [
             {
               "name": "Source",
@@ -127,30 +127,8 @@ function DeployPipelineParams(
           ]
         },
         {
-          "name": "BuildSource",
+          "name": Transitions.Names.All.BUILD,
           "actions": [
-            {
-              "name": "TransitionFromSource",
-              "actionTypeId": {
-                "category": "Invoke",
-                "owner": "AWS",
-                "version": "1",
-                "provider": "Lambda"
-              },
-              "inputArtifacts": [
-                {
-                  "name": "SOURCE"
-                }
-              ],
-              "configuration": {
-                "FunctionName": transitionFxnName,
-                "UserParameters": JSON.stringify({
-                    EnsName: ensName,
-                    TransitionName: Transitions.Names.All.SOURCE
-                })
-              },
-              "runOrder": 1
-            },
             {
               "inputArtifacts": [
                 {
@@ -184,34 +162,12 @@ function DeployPipelineParams(
                   ]
                 )
               },
-              "runOrder": 2
-            },
-            {
-              "name": "TransitionFromBuild",
-              "actionTypeId": {
-                "category": "Invoke",
-                "owner": "AWS",
-                "version": "1",
-                "provider": "Lambda"
-              },
-              "inputArtifacts": [
-                {
-                  "name": "BUILD"
-                }
-              ],
-              "configuration": {
-                "FunctionName": transitionFxnName,
-                "UserParameters": JSON.stringify({
-                    EnsName:  ensName,
-                    TransitionName: Transitions.Names.All.BUILD
-                })
-              },
-              "runOrder": 3
+              "runOrder": 1
             }
           ]
         },
         {
-          "name": "DeployIPFS",
+          "name": Transitions.Names.All.IPFS,
           "actions": [
               {
                   "name": "Deploy",
@@ -237,5 +193,49 @@ function DeployPipelineParams(
         }
       ]
     }
+  }
+}
+
+const StageTransitionEventSample = {
+  "version": "0",
+  "id": "CWE-event-id",
+  "detail-type": "CodePipeline Stage Execution State Change",
+  "source": "aws.codepipeline",
+  "account": "123456789012",
+  "time": "2017-04-22T03:31:47Z",
+  "region": "us-east-1",
+  "resources": [
+    "arn:aws:codepipeline:us-east-1:123456789012:pipeline:myPipeline"
+  ],
+  "detail": {
+    "pipeline": "myPipeline",
+    "version": "1",
+    "execution-id": "01234567-0123-0123-0123-012345678901",
+    "stage": "Prod",
+    "state": "STARTED"
+  }
+}
+
+/**
+ * This interface combines the shape of all Stage Execution
+ * Cloudwatch events (shown above) with the specific details
+ * we can guarantee.  Our stage names now use the enum, so we
+ * know the possible values 
+ */
+export interface StageCompletionCloudwatchEvent {
+  "version": string
+  "id": string
+  "detail-type": "CodePipeline Stage Execution State Change"
+  "source": "aws.codepipeline"
+  "account": string
+  "time": string
+  "region": string
+  "resources": string[]
+  "detail": {
+    "pipeline": string
+    "version": string
+    "execution-id": string
+    "stage": Transitions.Names.Pipeline
+    "state": "SUCCEEDED" | "FAILED"
   }
 }

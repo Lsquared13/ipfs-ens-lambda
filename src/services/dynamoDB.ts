@@ -12,6 +12,7 @@ export const DynamoDB = {
   initDeployItem,
   getDeployItem,
   updateDeployItem,
+  setTransitionErr,
   addSourceTransition,
   addBuildTransition,
   addIpfsTransition,
@@ -197,6 +198,18 @@ function putRawDeployItem(item:PutItemInputAttributeMap) {
 }
 
 // Transitions
+
+async function setTransitionErr(ensName:string, transition:Transitions.Names.All, message: string) {
+  let now = new Date().toISOString();
+  let itemUpdater = (item:DeployItem) => {
+    let newItem = lodash.cloneDeep(item);
+    newItem.transitionError = {
+      transition, message, timestamp: now
+    }
+    return newItem;
+  }
+  return updateDeployItem(ensName, itemUpdater)
+}
 
 async function addPipelineTransition(transition:Transitions.Names.Pipeline, ensName:string, size:number) {
   let now = new Date().toISOString();
