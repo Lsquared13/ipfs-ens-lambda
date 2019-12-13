@@ -14,6 +14,7 @@ const PipelineTransition = async (event: StageCompletionCloudwatchEvent) => {
     // Pipeline name is the last element of the ARN when split on ':'
     const arnParts = pipelineArn.split(':')
     const pipelineName = arnParts[arnParts.length - 1];
+    console.log('Querying with pipelineName: ',pipelineName);
     const item = await DynamoDB.getDeployItemByPipeline(pipelineName);
 
     // If there's no DeployItem, then the event must be coming from a

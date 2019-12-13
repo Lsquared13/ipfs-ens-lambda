@@ -66,8 +66,9 @@ async function getDeployItem(ensName:string):Promise<DeployItem | null> {
 
 async function getDeployItemByPipeline(pipelineName:string):Promise<DeployItem | null> {
   const ddbItem = await getRawDeployItemByPipeline(pipelineName);
-  if (!ddbItem.Item) return null;
-  return deployItemFromDDB(ddbItem.Item);
+  const { Count, Items } = ddbItem;
+  if (!Count || !Items) return null;
+  return deployItemFromDDB(Items[0]);
 }
 
 async function listDeployItems(username:string):Promise<DeployItem[]> {
@@ -189,7 +190,7 @@ function getRawDeployItemByPipeline(pipelineName:string) {
     Key: serializeDeployItemPipelineKey(pipelineName)
   };
 
-  return addAwsPromiseRetries(() => ddb.getItem(getItemParams).promise(), maxRetries);
+  return addAwsPromiseRetries(() => ddb.query(getItemParams).promise(), maxRetries);
 }
 
 /**
