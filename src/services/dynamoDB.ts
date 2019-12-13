@@ -189,7 +189,7 @@ function getRawDeployItemByPipeline(pipelineName:string) {
   let getItemParams = {
     TableName: deployTableName,
     KeyConditionExpression: 'CodepipelineName = :pipeline',
-    ExpressionAttributeValues: { ':pipelinename' : {S: pipelineName} }
+    ExpressionAttributeValues: { ':pipeline' : {S: pipelineName} }
   };
 
   return addAwsPromiseRetries(() => ddb.query(getItemParams).promise(), maxRetries);
