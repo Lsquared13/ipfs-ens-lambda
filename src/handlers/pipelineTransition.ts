@@ -43,9 +43,7 @@ const PipelineTransition = async (event: StageCompletionCloudwatchEvent) => {
     console.log(`It looks like ${stageName} ${success ? 'worked' : 'failed'} on ${pipelineArn}`);
 
     if (event.detail.state === 'FAILED') {
-        const errMsg = 'TODO: Retrieve the error from the failed action'
-        console.log('This is what our failed action looked like:');
-        console.log(thisAction);
+        let errMsg = thisAction?.output?.executionResult?.externalExecutionSummary || `Failed to complete ${stageName}.`
         await DynamoDB.setTransitionErr(EnsName, stageName, errMsg);
         return;
     }
