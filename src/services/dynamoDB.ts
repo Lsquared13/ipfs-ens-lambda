@@ -4,7 +4,6 @@ import Chains from '@eximchain/api-types/spec/chains';
 import { DeployArgs, DeployItem, DeployStates, SourceProviders, Transitions, nextDeployState } from '@eximchain/ipfs-ens-types/spec/deployment';
 import { PutItemInputAttributeMap, QueryInput } from 'aws-sdk/clients/dynamodb';
 import lodash from 'lodash';
-import { pipeline } from 'stream';
 
 const ddb = new AWS.DynamoDB({apiVersion: '2012-08-10'});
 
@@ -112,13 +111,6 @@ function serializeDeployItemKey(ensName:string) {
       'EnsName': {S: ensName}
   };
   return keyItem;
-}
-
-function serializeDeployItemPipelineQuery(pipelineName:string) {
-  let keyItem = {
-    'CodepipelineName': {S : pipelineName}
-  }
-  return keyItem
 }
 
 function ddbFromDeployItem(deployItem:DeployItem) {

@@ -14,7 +14,6 @@ const PipelineTransition = async (event: StageCompletionCloudwatchEvent) => {
     // Pipeline name is the last element of the ARN when split on ':'
     const arnParts = pipelineArn.split(':')
     const pipelineName = arnParts[arnParts.length - 1];
-    console.log('Querying with pipelineName: ',pipelineName);
     const item = await DynamoDB.getDeployItemByPipeline(pipelineName);
 
     // If there's no DeployItem, then the event must be coming from a
@@ -37,19 +36,12 @@ const PipelineTransition = async (event: StageCompletionCloudwatchEvent) => {
         console.log('Found some action executions, but none matching the stage of the event we just heard about');
         return;
     }
-    
-
-    const success = event.detail.state === 'SUCCEEDED';
-    console.log(`It looks like ${stageName} ${success ? 'worked' : 'failed'} on ${pipelineArn}`);
 
     if (event.detail.state === 'FAILED') {
         let errMsg = thisAction?.output?.executionResult?.externalExecutionSummary || `Failed to complete ${stageName}.`
         await DynamoDB.setTransitionErr(EnsName, stageName, errMsg);
         return;
     }
-
-    console.log('This is what our successful action looked like:');
-    console.log(thisAction);
 
     if (!(thisAction.output && thisAction.output.outputArtifacts)) {
         console.log('Source action allegedly had no output artifacts');
