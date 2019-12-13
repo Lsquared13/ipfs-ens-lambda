@@ -11,6 +11,7 @@ const codepipeline = new AWS.CodePipeline();
 export const CodePipeline = {
   create: promiseCreatePipeline,
   createDeploy: promiseCreateDeployPipeline,
+  getActions: promiseGetActionExecutions,
   run: promiseRunPipeline,
   delete: promiseDeletePipeline,
   completeJob: promiseCompleteJob,
@@ -42,6 +43,14 @@ function promiseCreatePipeline(params: CreatePipelineInput) {
  */
 function promiseCreateDeployPipeline(ensName: string, pipelineName: string, packageDir: string, buildDir: string, oauthGithubToken: string, owner: string, repo: string, branch: string) {
   return promiseCreatePipeline(DeployPipelineParams(ensName, pipelineName, packageDir, buildDir, oauthGithubToken, owner, repo, branch))
+}
+
+function promiseGetActionExecutions(pipelineName:string) {
+  let maxRetries = 5;
+  let params = {
+    pipelineName: pipelineName,
+  }
+  return addAwsPromiseRetries(() => codepipeline.listActionExecutions(params).promise(), maxRetries);
 }
 
 function promiseRunPipeline(pipelineName: string) {

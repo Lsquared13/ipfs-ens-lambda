@@ -11,6 +11,7 @@ export const DynamoDB = {
   listDeployItems,
   initDeployItem,
   getDeployItem,
+  getDeployItemByPipeline,
   updateDeployItem,
   setTransitionErr,
   addSourceTransition,
@@ -63,6 +64,12 @@ async function getDeployItem(ensName:string):Promise<DeployItem | null> {
   return deployItemFromDDB(ddbItem.Item);
 }
 
+async function getDeployItemByPipeline(pipelineName:string):Promise<DeployItem | null> {
+  const ddbItem = await getRawDeployItemByPipeline(pipelineName);
+  if (!ddbItem.Item) return null;
+  return deployItemFromDDB(ddbItem.Item);
+}
+
 async function listDeployItems(username:string):Promise<DeployItem[]> {
   const ddbItems = await listRawDeployItems(username);
   return ddbItems.Items ? ddbItems.Items.map(deployItemFromDDB) : [];
@@ -105,12 +112,19 @@ function serializeDeployItemKey(ensName:string) {
   return keyItem;
 }
 
+function serializeDeployItemPipelineKey(pipelineName:string) {
+  let keyItem = {
+    'CodepipelineName': {S : pipelineName}
+  }
+  return keyItem
+}
+
 function ddbFromDeployItem(deployItem:DeployItem) {
   // Gather parameters
   const { 
     buildDir, branch, ensName, owner, repo, createdAt, updatedAt,
     username, state, codepipelineName, transitions, sourceProvider,
-    packageDir
+    packageDir, transitionError
   } = deployItem;
 
   // Add required parameters
@@ -130,16 +144,16 @@ function ddbFromDeployItem(deployItem:DeployItem) {
     'State': stringAttr(state),
     'CodepipelineName': stringAttr(codepipelineName)
   }
-
+  if (transitionError) dbItem['TransitionError'] = stringAttr(JSON.stringify(transitionError))
   return dbItem;
 }
 
 function deployItemFromDDB(dbItem:PutItemInputAttributeMap):DeployItem {
   const { 
     BuildDir, Owner, Repo, Branch, EnsName, CreatedAt, UpdatedAt, Username,
-    PackageDir, Transitions, State, CodepipelineName, SourceProvider
+    PackageDir, Transitions, State, CodepipelineName, SourceProvider, TransitionError
   } = dbItem;
-  const deployItem = {
+  const deployItem:DeployItem = {
     buildDir: BuildDir.S as string,
     packageDir: PackageDir.S as string,
     owner: Owner.S as string,
@@ -154,6 +168,7 @@ function deployItemFromDDB(dbItem:PutItemInputAttributeMap):DeployItem {
     codepipelineName: CodepipelineName.S as string,
     sourceProvider: SourceProvider.S as SourceProviders
   };
+  if (TransitionError) deployItem.transitionError = JSON.parse(TransitionError.S as string);
   return deployItem;
 }
 
@@ -162,6 +177,16 @@ function getRawDeployItem(ensName:string) {
   let getItemParams = {
       TableName: deployTableName,
       Key: serializeDeployItemKey(ensName)
+  };
+
+  return addAwsPromiseRetries(() => ddb.getItem(getItemParams).promise(), maxRetries);
+}
+
+function getRawDeployItemByPipeline(pipelineName:string) {
+  let maxRetries = 5;
+  let getItemParams = {
+    TableName: deployTableName,
+    Key: serializeDeployItemPipelineKey(pipelineName)
   };
 
   return addAwsPromiseRetries(() => ddb.getItem(getItemParams).promise(), maxRetries);
