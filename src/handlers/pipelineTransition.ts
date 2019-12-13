@@ -66,9 +66,4 @@ const PipelineTransition = async (event: StageCompletionCloudwatchEvent) => {
     return;
 }
 
-// let artifactLocation = inputArtifacts[0].location.s3Location;
-// let artifactSize = await S3.checkSize(artifactLocation);
-// // AWS can't guarantee that the object is present, so the underlying ContentLength
-// // may be undefined.  We ensure it's a number here just so Typescript doesn't complain.
-
 export default PipelineTransition;
