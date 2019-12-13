@@ -38,7 +38,10 @@ const PipelineTransition = async (event: StageCompletionCloudwatchEvent) => {
     }
 
     if (event.detail.state === 'FAILED') {
-        let errMsg = thisAction?.output?.executionResult?.externalExecutionSummary || `Failed to complete ${stageName}.`
+        let errMsg = `Failed to complete ${stageName}.`
+        if (thisAction.output && thisAction.output.executionResult && thisAction.output.executionResult.externalExecutionSummary) {
+            errMsg = thisAction.output.executionResult.externalExecutionSummary;
+        }
         await DynamoDB.setTransitionErr(EnsName, stageName, errMsg);
         return;
     }
