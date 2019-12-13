@@ -4,6 +4,7 @@ import Chains from '@eximchain/api-types/spec/chains';
 import { DeployArgs, DeployItem, DeployStates, SourceProviders, Transitions, nextDeployState } from '@eximchain/ipfs-ens-types/spec/deployment';
 import { PutItemInputAttributeMap, QueryInput } from 'aws-sdk/clients/dynamodb';
 import lodash from 'lodash';
+import { pipeline } from 'stream';
 
 const ddb = new AWS.DynamoDB({apiVersion: '2012-08-10'});
 
@@ -113,7 +114,7 @@ function serializeDeployItemKey(ensName:string) {
   return keyItem;
 }
 
-function serializeDeployItemPipelineKey(pipelineName:string) {
+function serializeDeployItemPipelineQuery(pipelineName:string) {
   let keyItem = {
     'CodepipelineName': {S : pipelineName}
   }
@@ -187,7 +188,8 @@ function getRawDeployItemByPipeline(pipelineName:string) {
   let maxRetries = 5;
   let getItemParams = {
     TableName: deployTableName,
-    Key: serializeDeployItemPipelineKey(pipelineName)
+    KeyConditionExpression: 'CodepipelineName = :pipeline',
+    ExpressionAttributeValues: { ':pipelinename' : {S: pipelineName} }
   };
 
   return addAwsPromiseRetries(() => ddb.query(getItemParams).promise(), maxRetries);
