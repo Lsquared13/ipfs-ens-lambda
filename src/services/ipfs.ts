@@ -1,11 +1,10 @@
 import ipfshttpclient from 'ipfs-http-client';
 import { operationNotImplemented } from '../common';
-import { resolve } from 'url';
-
+import { Readable } from 'stream';
+import shell from 'shelljs';
+import unzipper from 'unzipper';
 
 const ipfsClient = new ipfshttpclient('ipfs.infura.io', 5001, { protocol: 'https' });
-
-
 
 interface ipfsCreateResponse{
   hash?: string
@@ -18,19 +17,36 @@ interface ipfsCreateResponse{
  * Given a Buffer, write it to Inufra & return the `hash`
  * @param content 
  */
-async function ipfsCreate(content:Buffer):Promise<ipfsCreateResponse>{
-  try{
-    const result = await ipfsClient.add(content, {pin:true});
-    console.log('Result inside of ipfsCreate: ',result);
-    const {path, hash, size} = result[0];
-    return {path, hash, size};
-  }catch(e){
-    return {
-      error: true,
-      errorObject: new Error(e)
+async function ipfsCreate(content:Readable):Promise<ipfsCreateResponse>{
+  return new Promise(async (resolve, reject) => {
+    try{
+      shell.cd('/tmp');
+      content.pipe(unzipper.Extract({
+        path: '/tmp/build'
+      })).on('close', async () => {
+        // All files should now exist in /tmp/build...
+        console.log('List of files now available in /tmp/build:')
+        console.log(shell.ls('-R', '/tmp/build'));
+        // @ts-ignore Using method which is not yet specified.
+        const results = await ipfsClient.addFromFs('/tmp/build', { recursive: true });
+        console.log('Num Results: ',results.length);
+        if (results.length === 0) throw new Error('No results from add');
+        console.log('First result: ',results[0]);
+        console.log('Last Result: ', results[results.length - 1]);
+        resolve(results[results.length - 1]);
+      })
+  
+      // const result = await ipfsClient.add(content, {pin:true});
+      // console.log('Result inside of ipfsCreate: ',result);
+      // const {path, hash, size} = result[0];
+      // return {path, hash, size};
+    }catch(e){
+      reject({
+        error: true,
+        errorObject: new Error(e)
+      });
     }
-
-  }
+  })
 }
 
 interface ipfsReadResponse {
