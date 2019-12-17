@@ -1,5 +1,6 @@
 import ipfs from "../services/ipfs"
 import utils from "./utils/common"
+import { Readable } from "stream";
 
 let dummyContent:Buffer;
 let dummyHash:string;
@@ -24,7 +25,10 @@ describe('IPFS upload service', function(){
 
   test('Upload text buffer to IPFS', async () => {
     try {
-      const {hash, path, size, error, errorObject } = await ipfs.create(dummyContent)
+      const dummyStream = new Readable();
+      dummyStream.push(dummyContent);
+      dummyStream.push(null);
+      const {hash, path, size, error, errorObject } = await ipfs.create(dummyStream)
       console.log("\t IPFS content hash: "+hash);
       expect(hash).toBeTruthy()
       expect(path).toBeTruthy()

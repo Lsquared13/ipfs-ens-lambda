@@ -1,4 +1,6 @@
 import ipfshttpclient from 'ipfs-http-client';
+// @ts-ignore ipfs-utils is not typed
+import { globSource } from 'ipfs-utils';
 import { operationNotImplemented } from '../common';
 import { Readable } from 'stream';
 import shell from 'shelljs';
@@ -27,14 +29,22 @@ async function ipfsCreate(content:Readable):Promise<ipfsCreateResponse>{
         shell.cd('/tmp/build');
         console.log('List of files now available in /tmp/build:')
         console.log(shell.ls('-R'));
+        const options = { recursive: true, hidden: true };
+        const globPaths = globSource('./', options)
+        console.log('globPaths: ',globPaths);
+        for await (let eachPath of globPaths) {
+          console.log('GlobPaths found ',eachPath);
+        }
+        const allResults = [];
         // @ts-ignore Using method which is not yet specified.
-        const results = await ipfsClient.addFromFs('./', { 
-          recursive: true, hidden: true,
+        const results = ipfsClient.addFromFs('./', { 
+          ...options,
           progress: (byteLength:any) => {console.log(`Added chunk to IPFS w/ byteLength ${byteLength.toString()}`)}
         });
-        console.log('Is results.next a fxn?: ',results.next);
-        if (typeof results.next === 'function') {
-          console.log('It is! Returned: ',results.next());
+        console.log('Results without await or loop: ',results);
+        for await (let result of results) {
+          console.log('Heard about a result from IPFS client: ',result);
+          allResults.push(result);
         }
         console.log('Num Results: ',results.length);
         if (results.length === 0) throw new Error('No results from add');
