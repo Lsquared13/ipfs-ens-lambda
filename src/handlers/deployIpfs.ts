@@ -32,8 +32,8 @@ const DeployIpfs = async (event: CodePipelineEvent) => {
                 Method : "DeployEns",
                 EnsName : EnsName
               }
-            await DynamoDB.addIpfsTransition(EnsName, hash);
             await SQS.sendMessage("DeployEns", JSON.stringify(sqsMessageBody));
+            await DynamoDB.addIpfsTransition(EnsName, hash);
             return await CodePipeline.completeJob(id);
         }
         console.log('IPFS Pin provided no response.');
