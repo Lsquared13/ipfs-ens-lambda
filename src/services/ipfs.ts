@@ -28,7 +28,10 @@ async function ipfsCreate(content:Readable):Promise<ipfsCreateResponse>{
         console.log('List of files now available in /tmp/build:')
         console.log(shell.ls('-R', '/tmp/build'));
         // @ts-ignore Using method which is not yet specified.
-        const results = await ipfsClient.addFromFs('/tmp/build', { recursive: true });
+        const results = await ipfsClient.addFromFs('/tmp/build', { 
+          recursive: true,
+          progress: (byteLength:any) => {console.log(`Added chunk to IPFS w/ byteLength ${byteLength.toString()}`)}
+        });
         console.log('Num Results: ',results.length);
         if (results.length === 0) throw new Error('No results from add');
         console.log('First result: ',results[0]);
