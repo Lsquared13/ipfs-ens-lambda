@@ -43,9 +43,15 @@ async function downloadArtifact(artifactLocation:S3ArtifactLocation, artifactCre
   console.log("Successfully retrieved artifact: ", getObjectResult);
   let artifact = getObjectResult.Body;
   if (!artifact) throw new Error('Artifact had an undefined body.');
-  if (artifact instanceof Readable) return artifact;
+  if (artifact instanceof Readable) {
+    console.log('Artifact is already a Readable stream')
+    return artifact;
+  }
 
   const artifactStream = new Readable();
+  if (Buffer.isBuffer(artifact)) console.log("Artifact comes back as a Buffer");
+  if (typeof artifact === 'string') console.log("Artifact comes back as a string");
+  if (artifact instanceof Uint8Array) console.log("Artifact is a Uint8 array");
   if (
     (Buffer.isBuffer(artifact)) ||
     (artifact instanceof Uint8Array) ||

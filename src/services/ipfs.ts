@@ -43,7 +43,9 @@ function ipfsCreate(zipStream: stream.Readable): Promise<ipfsCreateResponse> {
       await util.promisify(stream.finished)(zipStream);
       console.log('Allegedly buffered all files');
       files.forEach(file => ipfsStream.write(file));
+      console.log('Wrote all files to stream')
       ipfsStream.end();
+      console.log('Ended stream');
       const uploadedFilesArray:ipfsCreateResponse[] = await getStream.array(ipfsStream);
       console.log('---------- IPFS UPLOAD DETAILS ----------');
       console.log(`Buffered following paths into memory : `,files.map(file => file.path))
