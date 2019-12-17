@@ -34,8 +34,7 @@ async function ipfsCreate(content:Readable):Promise<ipfsCreateResponse>{
         });
         console.log('Num Results: ',results.length);
         if (results.length === 0) throw new Error('No results from add');
-        console.log('First result: ',results[0]);
-        console.log('Last Result: ', results[results.length - 1]);
+        console.log('All Results: ',results);
         resolve(results[results.length - 1]);
       })
   
