@@ -5,6 +5,10 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# Dev Scratch Files
+sampleBuild.zip
+sampleBuild
+
 # Runtime data
 pids
 *.pid

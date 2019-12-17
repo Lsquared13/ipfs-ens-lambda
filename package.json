@@ -7,6 +7,7 @@
   "scripts": {
     "test": "jest --config jestconfig.json",
     "build": "sh ./lambda-build.sh ipfs-ens-lambda.zip",
+    "compile": "tsc",
     "coverage": "jest --coverage"
   },
   "repository": {
@@ -35,6 +36,7 @@
     "@types/web3": "^1.2.2",
     "eth-ens-namehash": "^2.0.8",
     "ethereum-ens": "^0.7.8",
+    "get-stream": "^5.1.0",
     "ipfs-http-client": "^39.0.2",
     "ipfs-utils": "^0.4.1",
     "lodash": "^4.17.15",
@@ -56,6 +58,6 @@
     "jest": "^24.9.0",
     "ts-jest": "^24.1.0",
     "ts-node": "^8.4.1",
-    "typescript": "^3.7.2"
+    "typescript": "^3.6.3"
   }
 }

@@ -1,62 +1,54 @@
 import ipfshttpclient from 'ipfs-http-client';
-// @ts-ignore ipfs-utils is not typed
-import { globSource } from 'ipfs-utils';
 import { operationNotImplemented } from '../common';
-import { Readable } from 'stream';
-import shell from 'shelljs';
-import unzipper from 'unzipper';
+import stream from 'stream';
+import getStream from 'get-stream';
+import unzipper, { Entry } from 'unzipper';
+import util from 'util';
 
 const ipfsClient = new ipfshttpclient('ipfs.infura.io', 5001, { protocol: 'https' });
 
-interface ipfsCreateResponse{
+interface File {
+  path: string
+  content: Buffer
+}
+interface ipfsCreateResponse {
   hash?: string
-  path?:string
-  size?:number
-  error?:boolean
+  path?: string
+  size?: number
+  error?: boolean
   errorObject?: Error
 }
 /**
  * Given a Buffer, write it to Inufra & return the `hash`
- * @param content 
+ * @param zipStream 
  */
-async function ipfsCreate(content:Readable):Promise<ipfsCreateResponse>{
+function ipfsCreate(zipStream: stream.Readable): Promise<ipfsCreateResponse> {
   return new Promise(async (resolve, reject) => {
-    try{
-      content.pipe(unzipper.Extract({
-        path: '/tmp/build'
-      })).on('close', async () => {
-        // All files should now exist in /tmp/build...
-        shell.cd('/tmp/build');
-        console.log('List of files now available in /tmp/build:')
-        console.log(shell.ls('-R'));
-        const options = { recursive: true, hidden: true };
-        const globPaths = globSource('./', options)
-        console.log('globPaths: ',globPaths);
-        for await (let eachPath of globPaths) {
-          console.log('GlobPaths found ',eachPath);
-        }
-        const allResults = [];
-        // @ts-ignore Using method which is not yet specified.
-        const results = ipfsClient.addFromFs('./', { 
-          ...options,
-          progress: (byteLength:any) => {console.log(`Added chunk to IPFS w/ byteLength ${byteLength.toString()}`)}
-        });
-        console.log('Results without await or loop: ',results);
-        for await (let result of results) {
-          console.log('Heard about a result from IPFS client: ',result);
-          allResults.push(result);
-        }
-        console.log('Num Results: ',results.length);
-        if (results.length === 0) throw new Error('No results from add');
-        console.log('All Results: ',results);
-        resolve(results[results.length - 1]);
-      })
-  
-      // const result = await ipfsClient.add(content, {pin:true});
-      // console.log('Result inside of ipfsCreate: ',result);
-      // const {path, hash, size} = result[0];
-      // return {path, hash, size};
-    }catch(e){
+    const files:File[] = [];
+    // @ts-ignore Still not typed
+    const ipfsStream = ipfsClient.addReadableStream()
+    try {
+      zipStream
+        .pipe(unzipper.Parse())
+        .on('entry', async (entry:Entry) => {
+          if (entry.path !== '' && entry.type === 'File') {
+            const content = await entry.buffer();
+            files.push({
+              content, path: `/tmp/${entry.path}`
+            })
+          } else {
+            entry.autodrain()
+          }
+        })
+      await util.promisify(stream.finished)(zipStream);
+      files.forEach(file => ipfsStream.write(file));
+      ipfsStream.end();
+      const uploadedFilesArray:ipfsCreateResponse[] = await getStream.array(ipfsStream);
+      console.log('---------- IPFS UPLOAD DETAILS ----------');
+      console.log(`Buffered following paths into memory : `,files.map(file => file.path))
+      console.log(`Uploaded the following path & hash pairs : `,uploadedFilesArray.map((res) => `${res.path}: ${res.hash}`));
+      resolve(uploadedFilesArray[uploadedFilesArray.length - 1]);
+    } catch (e) {
       reject({
         error: true,
         errorObject: new Error(e)
@@ -66,9 +58,9 @@ async function ipfsCreate(content:Readable):Promise<ipfsCreateResponse>{
 }
 
 interface ipfsReadResponse {
-  cat? :string
-  exists? : boolean
-  error?:boolean
+  cat?: string
+  exists?: boolean
+  error?: boolean
   errorObject?: Error
 
 }
@@ -76,30 +68,31 @@ interface ipfsReadResponse {
  * TODO: Check if there is IPFS file at `hash`
  * @param hash  base58 encoded string representing IPFS hash like: 'QmXEmhrMpbVvTh61FNAxP9nU7ygVtyvZA8HZDUaqQCAb66"
  */
-async function ipfsRead(hash:string): Promise<ipfsReadResponse> {
-  try{
-    const results = await ipfsClient.cat(`/ipfs/${hash}`,{offset:0 ,length:2})
+async function ipfsRead(hash: string): Promise<ipfsReadResponse> {
+  try {
+    const results = await ipfsClient.cat(`/ipfs/${hash}`, { offset: 0, length: 2 })
     const cat = results.toString();
-    const exists = cat? true: false;
+    const exists = cat ? true : false;
     return {
       cat: cat,
       exists: exists
     }
 
-  }catch(e){
-    if (e == "Request timed out"){return {
+  } catch (e) {
+    if (e == "Request timed out") {
+      return {
         exists: false,
         error: true,
         errorObject: new Error(e)
       }
-    }else{
+    } else {
       return {
         exists: false,
         error: true,
         errorObject: new Error(e)
       }
     }
-    
+
 
   }
 
@@ -112,7 +105,7 @@ async function ipfsRead(hash:string): Promise<ipfsReadResponse> {
  * 3. Uploads file if not
  * @param hash 
  */
-async function ipfsUpdate(hash:string) {
+async function ipfsUpdate(hash: string) {
   return operationNotImplemented();
 }
 
@@ -120,7 +113,7 @@ async function ipfsUpdate(hash:string) {
  * TODO: Can't delete once it's on network, fail gracefully
  * @param hash 
  */
-async function ipfsDelete(hash:string) {
+async function ipfsDelete(hash: string) {
   return operationNotImplemented();
 }
 
@@ -128,7 +121,7 @@ async function ipfsDelete(hash:string) {
  * List IPFS info about file if it exists
  * @param hash 
  */
-async function ipfsList(hash:string) {
+async function ipfsList(hash: string) {
   return operationNotImplemented();
 }
 
