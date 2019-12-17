@@ -41,6 +41,7 @@ function ipfsCreate(zipStream: stream.Readable): Promise<ipfsCreateResponse> {
           }
         })
       await util.promisify(stream.finished)(zipStream);
+      console.log('Allegedly buffered all files');
       files.forEach(file => ipfsStream.write(file));
       ipfsStream.end();
       const uploadedFilesArray:ipfsCreateResponse[] = await getStream.array(ipfsStream);
@@ -49,6 +50,7 @@ function ipfsCreate(zipStream: stream.Readable): Promise<ipfsCreateResponse> {
       console.log(`Uploaded the following path & hash pairs : `,uploadedFilesArray.map((res) => `${res.path}: ${res.hash}`));
       resolve(uploadedFilesArray[uploadedFilesArray.length - 1]);
     } catch (e) {
+      console.log('Error in services/ipfs.ipfsCreate: ',e)
       reject({
         error: true,
         errorObject: new Error(e)

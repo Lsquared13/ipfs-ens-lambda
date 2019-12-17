@@ -43,7 +43,7 @@ const DeployIpfs = async (event: CodePipelineEvent) => {
         throw new Error('did not recieve response from ipfs add with pin, try again later could be Infura');
     } catch (err) {
         //TODO: Write failures to a retry queue?
-
+        console.log('Error on deployIPFS: ',err);
         await DynamoDB.setTransitionErr(EnsName, Transitions.Names.All.IPFS, err.toString());
         return await CodePipeline.failJob(id, err);
     }
