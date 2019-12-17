@@ -32,8 +32,10 @@ async function ipfsCreate(content:Readable):Promise<ipfsCreateResponse>{
           recursive: true, hidden: true,
           progress: (byteLength:any) => {console.log(`Added chunk to IPFS w/ byteLength ${byteLength.toString()}`)}
         });
-        console.log('Is results.value an array?: ',results.value);
         console.log('Is results.next a fxn?: ',results.next);
+        if (typeof results.next === 'function') {
+          console.log('It is! Returned: ',results.next());
+        }
         console.log('Num Results: ',results.length);
         if (results.length === 0) throw new Error('No results from add');
         console.log('All Results: ',results);
