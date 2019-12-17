@@ -20,18 +20,20 @@ interface ipfsCreateResponse{
 async function ipfsCreate(content:Readable):Promise<ipfsCreateResponse>{
   return new Promise(async (resolve, reject) => {
     try{
-      shell.cd('/tmp');
       content.pipe(unzipper.Extract({
         path: '/tmp/build'
       })).on('close', async () => {
         // All files should now exist in /tmp/build...
+        shell.cd('/tmp/build');
         console.log('List of files now available in /tmp/build:')
-        console.log(shell.ls('-R', '/tmp/build'));
+        console.log(shell.ls('-R'));
         // @ts-ignore Using method which is not yet specified.
-        const results = await ipfsClient.addFromFs('/tmp/build', { 
-          recursive: true,
+        const results = await ipfsClient.addFromFs('./', { 
+          recursive: true, hidden: true,
           progress: (byteLength:any) => {console.log(`Added chunk to IPFS w/ byteLength ${byteLength.toString()}`)}
         });
+        console.log('Is results.value an array?: ',results.value);
+        console.log('Is results.next a fxn?: ',results.next);
         console.log('Num Results: ',results.length);
         if (results.length === 0) throw new Error('No results from add');
         console.log('All Results: ',results);
