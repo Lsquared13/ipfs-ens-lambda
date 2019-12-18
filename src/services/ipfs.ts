@@ -43,12 +43,14 @@ async function ipfsCreate(basePath:string, zipStream: stream.Readable): Promise<
       })
       .promise()
     
-    console.log('Files we are adding: ',files);
+    console.log('Files we are adding: ',files.map(file => file.path));
+    const allHashesArray: ipfsCreateResponse[] = await ipfsClient.add(files, { wrapWithDirectory: true, onlyHash: true });
     const uploadedFilesArray: ipfsCreateResponse[] = await ipfsClient.add(files, { wrapWithDirectory: true });
     console.log('---------- IPFS UPLOAD DETAILS ----------');
     console.log(`Buffered following paths into memory : `, files.map(file => file.path))
+    console.log('All hashes array: ', allHashesArray.map(res => `${res.path}: ${res.hash}`));
     console.log(`Uploaded the following path & hash pairs : `, uploadedFilesArray.map((res) => `${res.path}: ${res.hash}`));
-    return uploadedFilesArray[uploadedFilesArray.length - 1];
+    return allHashesArray[allHashesArray.length - 1];
   } catch (e) {
     console.log('Error in services/ipfs.ipfsCreate: ', e)
     throw e;
