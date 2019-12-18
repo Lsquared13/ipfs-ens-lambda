@@ -4,7 +4,7 @@ import { S3ArtifactLocation, Credentials } from '@eximchain/api-types/spec/event
 import { AWS } from '../env';
 import { addAwsPromiseRetries } from "../common";
 import { CodePipeline } from 'aws-sdk';
-import { Readable, Stream } from 'stream';
+import { Readable, Stream, Duplex } from 'stream';
 
 const s3 = new AWS.S3({apiVersion: '2006-03-01'});
 
@@ -48,7 +48,7 @@ async function downloadArtifact(artifactLocation:S3ArtifactLocation, artifactCre
     return artifact;
   }
 
-  const artifactStream = new Readable();
+  const artifactStream = new Duplex();
   if (Buffer.isBuffer(artifact)) console.log("Artifact comes back as a Buffer");
   if (typeof artifact === 'string') console.log("Artifact comes back as a string");
   if (artifact instanceof Uint8Array) console.log("Artifact is a Uint8 array");
