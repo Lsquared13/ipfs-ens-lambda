@@ -23,47 +23,41 @@ interface ipfsCreateResponse {
  * @param zipStream 
  */
 async function ipfsCreate(zipStream: stream.Readable): Promise<ipfsCreateResponse> {
-  const asyncCreate:Promise<ipfsCreateResponse> = new Promise(async (resolve, reject) => {
-    const files:File[] = [];
-    // @ts-ignore Still not typed
-    const ipfsStream = ipfsClient.addReadableStream();
-    console.log('Created IPFS stream');
-    try {
-      zipStream
-        .pipe(unzipper.Parse())
-        .on('entry', async (entry:Entry) => {
-          if (entry.path !== '' && entry.type === 'File') {
-            const content = entry.buffer();
-            const path = `/tmp/${entry.path}`;
-            files.push({ content, path });
-          } else {
-            entry.autodrain()
-          }
-        })
-      await util.promisify(stream.finished)(zipStream);
-      console.log('Finished processing the zipStream');
-      for (let file of files) {
-        const fullContent = await file.content;
-        ipfsStream.write({ path: file.path, content: fullContent })
-        console.log(`Wrote ${file.path} to IPFS stream`);
-      }
-      console.log('Finished writing to IPFS stream');
-      ipfsStream.end();
-      console.log('Closed IPFS stream');
-      const uploadedFilesArray:ipfsCreateResponse[] = await getStream.array(ipfsStream);
-      console.log('---------- IPFS UPLOAD DETAILS ----------');
-      console.log(`Buffered following paths into memory : `,files.map(file => file.path))
-      console.log(`Uploaded the following path & hash pairs : `,uploadedFilesArray.map((res) => `${res.path}: ${res.hash}`));
-      resolve(uploadedFilesArray[uploadedFilesArray.length - 1]);
-    } catch (e) {
-      console.log('Error in services/ipfs.ipfsCreate: ',e)
-      reject({
-        error: true,
-        errorObject: new Error(e)
-      });
+  const files: File[] = [];
+  // @ts-ignore Still not typed
+  const ipfsStream = ipfsClient.addReadableStream();
+  console.log('Created IPFS stream');
+  try {
+    zipStream
+      .pipe(unzipper.Parse())
+      .on('entry', async (entry: Entry) => {
+        if (entry.path !== '' && entry.type === 'File') {
+          const content = entry.buffer();
+          const path = `/tmp/${entry.path}`;
+          files.push({ content, path });
+        } else {
+          entry.autodrain()
+        }
+      })
+    await util.promisify(stream.finished)(zipStream);
+    console.log('Finished processing the zipStream');
+    for (let file of files) {
+      const fullContent = await file.content;
+      ipfsStream.write({ path: file.path, content: fullContent })
+      console.log(`Wrote ${file.path} to IPFS stream`);
     }
-  })
-  return await asyncCreate;
+    console.log('Finished writing to IPFS stream');
+    ipfsStream.end();
+    console.log('Closed IPFS stream');
+    const uploadedFilesArray: ipfsCreateResponse[] = await getStream.array(ipfsStream);
+    console.log('---------- IPFS UPLOAD DETAILS ----------');
+    console.log(`Buffered following paths into memory : `, files.map(file => file.path))
+    console.log(`Uploaded the following path & hash pairs : `, uploadedFilesArray.map((res) => `${res.path}: ${res.hash}`));
+    return uploadedFilesArray[uploadedFilesArray.length - 1];
+  } catch (e) {
+    console.log('Error in services/ipfs.ipfsCreate: ', e)
+    throw e;
+  }
 }
 
 interface ipfsReadResponse {
