@@ -7,10 +7,6 @@ import util from 'util';
 
 const ipfsClient = new ipfshttpclient('ipfs.infura.io', 5001, { protocol: 'https' });
 
-function delay(ms:number) {
-  return new Promise((resolve, reject) => setTimeout(resolve, ms));
-}
-
 interface File {
   path: string
   content: Promise<Buffer>
@@ -26,8 +22,8 @@ interface ipfsCreateResponse {
  * Given a Buffer, write it to Inufra & return the `hash`
  * @param zipStream 
  */
-function ipfsCreate(zipStream: stream.Readable): Promise<ipfsCreateResponse> {
-  return new Promise(async (resolve, reject) => {
+async function ipfsCreate(zipStream: stream.Readable): Promise<ipfsCreateResponse> {
+  const asyncCreate:Promise<ipfsCreateResponse> = new Promise(async (resolve, reject) => {
     const files:File[] = [];
     // @ts-ignore Still not typed
     const ipfsStream = ipfsClient.addReadableStream();
@@ -67,6 +63,7 @@ function ipfsCreate(zipStream: stream.Readable): Promise<ipfsCreateResponse> {
       });
     }
   })
+  return await asyncCreate;
 }
 
 interface ipfsReadResponse {
