@@ -9,7 +9,7 @@ const ipfsClient = new ipfshttpclient('ipfs.infura.io', 5001, { protocol: 'https
 
 interface File {
   path: string
-  content: Promise<Buffer>
+  content: Buffer
 }
 interface ipfsCreateResponse {
   hash?: string
@@ -24,26 +24,29 @@ interface ipfsCreateResponse {
  */
 async function ipfsCreate(zipStream: stream.Readable): Promise<ipfsCreateResponse> {
   const files: File[] = [];
+
   // @ts-ignore Still not typed
   const ipfsStream = ipfsClient.addReadableStream();
   console.log('Created IPFS stream');
   try {
-    zipStream
+    await zipStream
       .pipe(unzipper.Parse())
       .on('entry', async (entry: Entry) => {
         if (entry.path !== '' && entry.type === 'File') {
-          const content = entry.buffer();
+          const content = await entry.buffer();
           const path = `/tmp/${entry.path}`;
           files.push({ content, path });
+          console.log(`Pushed ${path} to files array`);
         } else {
           entry.autodrain()
         }
       })
-    await util.promisify(stream.finished)(zipStream);
+      .promise()
+      .then(() => console.log('zipStream promise returned'));
+    
     console.log('Finished processing the zipStream');
     for (let file of files) {
-      const fullContent = await file.content;
-      ipfsStream.write({ path: file.path, content: fullContent })
+      ipfsStream.write(file)
       console.log(`Wrote ${file.path} to IPFS stream`);
     }
     console.log('Finished writing to IPFS stream');
