@@ -8,7 +8,7 @@ const ipfsClient = new ipfshttpclient('ipfs.infura.io', 5001, { protocol: 'https
 
 interface File {
   path: string
-  content: Buffer
+  content?: Buffer
 }
 interface ipfsCreateResponse {
   hash?: string
@@ -33,11 +33,13 @@ async function ipfsCreate(basePath:string, zipStream: stream.Readable): Promise<
           const path = `/${basePath}/${entry.path}`;
           files.push({ content, path });
         } else {
+          console.log('Ignoring entry: ',entry);
           entry.autodrain()
         }
       })
       .promise()
     
+    console.log('Files we are adding: ',files);
     const uploadedFilesArray: ipfsCreateResponse[] = await ipfsClient.add(files)
     console.log('---------- IPFS UPLOAD DETAILS ----------');
     console.log(`Buffered following paths into memory : `, files.map(file => file.path))
