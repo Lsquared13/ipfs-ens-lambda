@@ -3,7 +3,6 @@ import { operationNotImplemented } from '../common';
 import stream from 'stream';
 import getStream from 'get-stream';
 import unzipper, { Entry } from 'unzipper';
-import util from 'util';
 
 const ipfsClient = new ipfshttpclient('ipfs.infura.io', 5001, { protocol: 'https' });
 
@@ -22,29 +21,24 @@ interface ipfsCreateResponse {
  * Given a Buffer, write it to Inufra & return the `hash`
  * @param zipStream 
  */
-async function ipfsCreate(zipStream: stream.Readable): Promise<ipfsCreateResponse> {
+async function ipfsCreate(basePath:string, zipStream: stream.Readable): Promise<ipfsCreateResponse> {
   const files: File[] = [];
 
-  // @ts-ignore Still not typed
-  const ipfsStream = ipfsClient.addReadableStream();
   try {
     await zipStream
       .pipe(unzipper.Parse())
       .on('entry', async (entry: Entry) => {
         if (entry.path !== '' && entry.type === 'File') {
           const content = await entry.buffer();
-          const path = `/tmp/${entry.path}`;
+          const path = `/${basePath}/${entry.path}`;
           files.push({ content, path });
         } else {
           entry.autodrain()
         }
       })
       .promise()
-    for (let file of files) {
-      ipfsStream.write(file)
-    }
-    ipfsStream.end();
-    const uploadedFilesArray: ipfsCreateResponse[] = await getStream.array(ipfsStream);
+    
+    const uploadedFilesArray: ipfsCreateResponse[] = await ipfsClient.add(files)
     console.log('---------- IPFS UPLOAD DETAILS ----------');
     console.log(`Buffered following paths into memory : `, files.map(file => file.path))
     console.log(`Uploaded the following path & hash pairs : `, uploadedFilesArray.map((res) => `${res.path}: ${res.hash}`));

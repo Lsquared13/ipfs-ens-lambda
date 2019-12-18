@@ -3,6 +3,7 @@ import utils from "./utils/common"
 import fs from 'fs';
 import path from 'path';
 import { Readable } from "stream";
+const uuidv4 = require('uuid/v4');
 
 let dummyContent:Buffer;
 let dummyHash:string;
@@ -33,7 +34,7 @@ describe('IPFS upload service', function(){
       dummyStream.push(dummyContent);
       dummyStream.push(null);
       const testStream = fs.createReadStream(zipPath);
-      const {hash, path, size, error, errorObject } = await ipfs.create(testStream)
+      const {hash, path, size, error, errorObject } = await ipfs.create(uuidv4(), testStream)
       console.log("\t IPFS content hash: "+hash);
       expect(hash).toBeTruthy()
       expect(path).toBeTruthy()
@@ -43,7 +44,7 @@ describe('IPFS upload service', function(){
     } catch (err) {
       console.log(err);
     }
-  }, 30000)
+  }, 90000)
 
   // test('Check if text buffer is available', async () => {
     
