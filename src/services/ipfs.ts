@@ -1,10 +1,14 @@
+// @ts-ignore
 import ipfshttpclient from 'ipfs-http-client';
 import { operationNotImplemented } from '../common';
 import stream from 'stream';
 import getStream from 'get-stream';
 import unzipper, { Entry } from 'unzipper';
 
-const ipfsClient = new ipfshttpclient('ipfs.infura.io', 5001, { protocol: 'https' });
+// @ts-ignore
+const ipfsClient = new ipfshttpclient({
+  host: 'ipfs.infura.io', protocol: 'https', port: 5001
+});
 
 interface File {
   path: string
