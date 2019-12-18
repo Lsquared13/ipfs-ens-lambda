@@ -27,7 +27,6 @@ async function ipfsCreate(zipStream: stream.Readable): Promise<ipfsCreateRespons
 
   // @ts-ignore Still not typed
   const ipfsStream = ipfsClient.addReadableStream();
-  console.log('Created IPFS stream');
   try {
     await zipStream
       .pipe(unzipper.Parse())
@@ -36,22 +35,15 @@ async function ipfsCreate(zipStream: stream.Readable): Promise<ipfsCreateRespons
           const content = await entry.buffer();
           const path = `/tmp/${entry.path}`;
           files.push({ content, path });
-          console.log(`Pushed ${path} to files array`);
         } else {
           entry.autodrain()
         }
       })
       .promise()
-      .then(() => console.log('zipStream promise returned'));
-    
-    console.log('Finished processing the zipStream');
     for (let file of files) {
       ipfsStream.write(file)
-      console.log(`Wrote ${file.path} to IPFS stream`);
     }
-    console.log('Finished writing to IPFS stream');
     ipfsStream.end();
-    console.log('Closed IPFS stream');
     const uploadedFilesArray: ipfsCreateResponse[] = await getStream.array(ipfsStream);
     console.log('---------- IPFS UPLOAD DETAILS ----------');
     console.log(`Buffered following paths into memory : `, files.map(file => file.path))
