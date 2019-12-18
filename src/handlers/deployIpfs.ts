@@ -22,9 +22,9 @@ const DeployIpfs = async (event: CodePipelineEvent) => {
         let artifactZipStream = await S3.downloadArtifact(artifactLocation, artifactCredentials);
         let result = await ipfs.create(EnsName, artifactZipStream);
         console.log('Result from ipfs.create: ',result);
-        const {path, hash, size} = result;
+        const {hash, size} = result;
         logSuccess("IPFS UPLOAD", hash);
-        if(path && hash && size){
+        if(hash && size){
             //NOTE: SEND SSQS MESSAGE TO START ENS TRANSACTION CHAIN, KEYED BY ENS NAME TO FETCH DDB state
             let sqsMessageBody = {
                 //TODO: extract out magic to types
@@ -36,7 +36,6 @@ const DeployIpfs = async (event: CodePipelineEvent) => {
             return await CodePipeline.completeJob(id);
         }
         console.log('IPFS Pin provided no response.');
-        console.log('path: ',path);
         console.log('hash: ',hash);
         console.log('size: ',size);
         throw new Error('did not recieve response from ipfs add with pin, try again later could be Infura');

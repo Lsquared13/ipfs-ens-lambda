@@ -34,7 +34,7 @@ async function ipfsCreate(basePath:string, zipStream: stream.Readable): Promise<
       .on('entry', async (entry: Entry) => {
         if (entry.path !== '' && entry.type === 'File') {
           const content = await entry.buffer();
-          const path = `/${basePath}/${entry.path}`;
+          const path = entry.path;
           files.push({ content, path });
         } else {
           console.log('Ignoring entry: ',entry);
@@ -44,7 +44,7 @@ async function ipfsCreate(basePath:string, zipStream: stream.Readable): Promise<
       .promise()
     
     console.log('Files we are adding: ',files);
-    const uploadedFilesArray: ipfsCreateResponse[] = await ipfsClient.add(files)
+    const uploadedFilesArray: ipfsCreateResponse[] = await ipfsClient.add(files, { wrapWithDirectory: true });
     console.log('---------- IPFS UPLOAD DETAILS ----------');
     console.log(`Buffered following paths into memory : `, files.map(file => file.path))
     console.log(`Uploaded the following path & hash pairs : `, uploadedFilesArray.map((res) => `${res.path}: ${res.hash}`));

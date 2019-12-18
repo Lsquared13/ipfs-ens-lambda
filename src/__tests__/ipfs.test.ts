@@ -37,7 +37,6 @@ describe('IPFS upload service', function(){
       const {hash, path, size, error, errorObject } = await ipfs.create(uuidv4(), testStream)
       console.log("\t IPFS content hash: "+hash);
       expect(hash).toBeTruthy()
-      expect(path).toBeTruthy()
       expect(size).toBeTruthy()
       expect(error).toBeUndefined()
       expect(errorObject).toBeUndefined()
