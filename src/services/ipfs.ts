@@ -7,9 +7,13 @@ import util from 'util';
 
 const ipfsClient = new ipfshttpclient('ipfs.infura.io', 5001, { protocol: 'https' });
 
+function delay(ms:number) {
+  return new Promise((resolve, reject) => setTimeout(resolve, ms));
+}
+
 interface File {
   path: string
-  content: Buffer
+  content: Promise<Buffer>
 }
 interface ipfsCreateResponse {
   hash?: string
@@ -26,26 +30,25 @@ function ipfsCreate(zipStream: stream.Readable): Promise<ipfsCreateResponse> {
   return new Promise(async (resolve, reject) => {
     const files:File[] = [];
     // @ts-ignore Still not typed
-    const ipfsStream = ipfsClient.addReadableStream()
+    const ipfsStream = ipfsClient.addReadableStream();
     try {
       zipStream
         .pipe(unzipper.Parse())
         .on('entry', async (entry:Entry) => {
           if (entry.path !== '' && entry.type === 'File') {
-            const content = await entry.buffer();
-            files.push({
-              content, path: `/tmp/${entry.path}`
-            })
+            const content = entry.buffer();
+            const path = `/tmp/${entry.path}`;
+            files.push({ content, path });
           } else {
             entry.autodrain()
           }
         })
       await util.promisify(stream.finished)(zipStream);
-      console.log('Allegedly buffered all files');
-      files.forEach(file => ipfsStream.write(file));
-      console.log('Wrote all files to stream')
+      for (let file of files) {
+        const fullContent = await file.content;
+        ipfsStream.write({ path: file.path, content: fullContent })
+      }
       ipfsStream.end();
-      console.log('Ended stream');
       const uploadedFilesArray:ipfsCreateResponse[] = await getStream.array(ipfsStream);
       console.log('---------- IPFS UPLOAD DETAILS ----------');
       console.log(`Buffered following paths into memory : `,files.map(file => file.path))

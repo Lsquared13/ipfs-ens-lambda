@@ -5,7 +5,7 @@
   "main": "build/index.js",
   "types": "src/index.ts",
   "scripts": {
-    "test": "jest --config jestconfig.json",
+    "test": "jest --config jestconfig.json --logHeapUsage --runInBand",
     "build": "sh ./lambda-build.sh ipfs-ens-lambda.zip",
     "compile": "tsc",
     "coverage": "jest --coverage"
