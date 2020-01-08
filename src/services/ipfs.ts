@@ -26,7 +26,7 @@ interface ipfsCreateResponse {
  * Given a Buffer, write it to Inufra & return the `hash`
  * @param zipStream 
  */
-async function ipfsCreate(basePath:string, zipStream: stream.Readable): Promise<ipfsCreateResponse> {
+async function ipfsCreate(zipStream: stream.Readable): Promise<ipfsCreateResponse> {
   const files: File[] = [];
 
   try {

@@ -13,11 +13,11 @@ beforeAll(async () => {
   console.log(`\n Running test...`);
 })
 
-// beforeEach(async () => {
-//   console.log(`\n Current block number: ` + await ens.getBlockNumber());
-//   await utils.sleep(500);
+beforeEach(async () => {
+  console.log(`\n Current block number: ` + await ens.getBlockNumber());
+  await utils.sleep(500);
 
-// })
+})
 
 describe('IPFS upload service', function(){
 

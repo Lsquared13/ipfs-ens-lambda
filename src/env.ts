@@ -25,10 +25,6 @@ export const deployIpfsFxnName = process.env.SERVICES_LAMBDA_FUNCTION as string;
 export const transitionFxnName = process.env.TRANSITION_LAMBDA_FUNCTION as string;
 export const deployTableName = process.env.DEPLOY_TABLE_NAME as string;
 
-// Pinata Variables
-export const pinataApiKey = process.env.PINATA_API_KEY as string;
-export const pinataApiSecret = process.env.PINATA_API_SECRET as string;
-
 NoConfigAWS.config.update({region: awsRegion});
 
 export const AWS = NoConfigAWS;

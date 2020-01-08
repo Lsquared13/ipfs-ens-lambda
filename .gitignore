@@ -6,7 +6,6 @@ yarn-debug.log*
 yarn-error.log*
 
 # Dev Scratch Files
-sampleBuild.zip
 sampleBuild
 
 # Runtime data
@@ -36,7 +35,6 @@ bower_components
 # Built artifacts
 build/
 sampleBuild/
-sampleBuild.zip
 
 # Deployment package
 ipfs-ens-lambda.zip
