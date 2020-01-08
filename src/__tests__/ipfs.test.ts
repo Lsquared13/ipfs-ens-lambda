@@ -28,7 +28,7 @@ beforeAll(async () => {
 
 describe('IPFS upload service', function(){
 
-  test('Upload text buffer to IPFS', async () => {
+  test('Upload zip directory to IPFS', async () => {
     try {
       const dummyStream = new Readable();
       dummyStream.push(dummyContent);
@@ -43,7 +43,7 @@ describe('IPFS upload service', function(){
     } catch (err) {
       console.log(err);
     }
-  }, 90000)
+  }, 150000)
 
   // test('Check if text buffer is available', async () => {
     

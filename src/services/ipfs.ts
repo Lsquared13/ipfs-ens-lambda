@@ -47,7 +47,7 @@ async function ipfsCreate(basePath:string, zipStream: stream.Readable): Promise<
     const allHashesArray: ipfsCreateResponse[] = await ipfsClient.add(files, { wrapWithDirectory: true, onlyHash: true });
     const rootHash = allHashesArray[allHashesArray.length - 1]
     const uploadedFilesArray: ipfsCreateResponse[] = await ipfsClient.add(files, { wrapWithDirectory: true });
-    const pinRes = await ipfsClient.pin.add(rootHash);
+    const pinRes = await ipfsClient.pin.add(rootHash.hash);
     console.log('---------- IPFS UPLOAD DETAILS ----------');
     console.log(`Buffered following paths into memory : `, files.map(file => file.path))
     console.log(`Root Hash Result (onlyHash): `, rootHash);
