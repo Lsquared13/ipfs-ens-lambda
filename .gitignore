@@ -35,6 +35,8 @@ bower_components
 
 # Built artifacts
 build/
+sampleBuild/
+sampleBuild.zip
 
 # Deployment package
 ipfs-ens-lambda.zip
