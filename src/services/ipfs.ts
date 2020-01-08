@@ -50,9 +50,9 @@ async function ipfsCreate(basePath:string, zipStream: stream.Readable): Promise<
     const pinRes = await ipfsClient.pin.add(rootHash.hash);
     console.log('---------- IPFS UPLOAD DETAILS ----------');
     console.log(`Buffered following paths into memory : `, files.map(file => file.path))
-    console.log(`Root Hash Result (onlyHash): `, rootHash);
     console.log('All hashes array: ', allHashesArray.map(res => `${res.path}: ${res.hash}`));
     console.log(`Uploaded the following path & hash pairs : `, uploadedFilesArray.map((res) => `${res.path}: ${res.hash}`));
+    console.log(`Root Hash Result (onlyHash): `, rootHash);
     console.log(`Pinned the following hashes: `,pinRes);
     return rootHash;
   } catch (e) {
