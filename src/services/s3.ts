@@ -4,7 +4,7 @@ import { S3ArtifactLocation, Credentials } from '@eximchain/api-types/spec/event
 import { AWS } from '../env';
 import { addAwsPromiseRetries } from "../common";
 import { CodePipeline } from 'aws-sdk';
-import { Readable, Stream, Duplex } from 'stream';
+import { Readable, Duplex } from 'stream';
 
 const s3 = new AWS.S3({apiVersion: '2006-03-01'});
 
