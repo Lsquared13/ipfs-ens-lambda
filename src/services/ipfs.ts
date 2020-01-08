@@ -1,5 +1,6 @@
 // @ts-ignore
 import ipfshttpclient from 'ipfs-http-client';
+import { find } from 'lodash';
 import { operationNotImplemented } from '../common';
 import stream from 'stream';
 import getStream from 'get-stream';
@@ -47,25 +48,28 @@ async function ipfsCreate(basePath:string, zipStream: stream.Readable): Promise<
     // let rootHash;
     
     let uploadedFilesArray:ipfsCreateResponse[] = [];
-    let rootHash:ipfsCreateResponse = { path : '', hash: '' };
+    let rootHash:ipfsCreateResponse | undefined;
     let attempts = 3;
-    while (attempts > 0) {
-      uploadedFilesArray = await ipfsClient.add(files);
-      rootHash = uploadedFilesArray[uploadedFilesArray.length - 1];
-      if (rootHash.path === 'build') {
+    let attemptsMade = 0;
+    while (attemptsMade < attempts) {
+      uploadedFilesArray = await ipfsClient.add(files, { quieter: true });
+      rootHash = find(uploadedFilesArray, (res) => res.path === 'build')
+      if (rootHash) {
         // Success, move on
-        attempts = 0;
+        attemptsMade = attempts;
       } else {
         // Failure, eithe retry or bail out
-        if (attempts > 1) {
-          console.log(`Upload result did not have root hash, final path hash was ${rootHash.path}.  Waiting 5s and trying again.`);
+        attemptsMade ++;
+        console.log('Upload result did not include rootHash, uploadedFilesArray after failed attempt: ',uploadedFilesArray);
+        if (attempts > attemptsMade) {
+          console.log(`Waiting 5s and trying again.`);
           await new Promise((res) => setTimeout(res, 5000));
-          attempts--;
-        } else {
-          throw new Error(`Upload result did not have root hash; hash path on final attempt was ${rootHash.path}.  Bailing out after ${attempts} failed attempts.`);
         }
       }
     }
+    // We know from control flow that rootHash must exist at this point in
+    // execution, but TS doesn't see it.  This check confirms it.
+    if (!rootHash) throw new Error(`Still no rootHash, bailing out after ${attempts} failed attempts.`);
     const pinRes = await ipfsClient.pin.add(rootHash.hash);
     console.log('---------- IPFS UPLOAD DETAILS ----------');
     console.log(`Uploaded the following path & hash pairs : `, uploadedFilesArray.map((res) => `${res.path}: ${res.hash}`));
