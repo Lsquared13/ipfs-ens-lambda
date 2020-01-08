@@ -44,35 +44,23 @@ async function ipfsCreate(basePath:string, zipStream: stream.Readable): Promise<
       })
       .promise()
     
-    console.log('Files we are adding: ',files.map(file => file.path));
-    // let rootHash;
+    console.log(`Attempting to upload the following ${files.length} files: `,files.map(file => file.path));
     
     let uploadedFilesArray:ipfsCreateResponse[] = [];
     let rootHash:ipfsCreateResponse | undefined;
-    let attempts = 3;
-    let attemptsMade = 0;
-    while (attemptsMade < attempts) {
-      uploadedFilesArray = await ipfsClient.add(files, { quieter: true });
+    const DELAY_IN_SECONDS = 10;
+    while (!rootHash) {
+      uploadedFilesArray = await ipfsClient.add(files);
       rootHash = find(uploadedFilesArray, (res) => res.path === 'build')
-      if (rootHash) {
-        // Success, move on
-        attemptsMade = attempts;
-      } else {
-        // Failure, eithe retry or bail out
-        attemptsMade ++;
-        console.log('Upload result did not include rootHash, uploadedFilesArray after failed attempt: ',uploadedFilesArray);
-        if (attempts > attemptsMade) {
-          console.log(`Waiting 5s and trying again.`);
-          await new Promise((res) => setTimeout(res, 5000));
-        }
+      if (!rootHash) {
+        console.log(`Upload result did not include rootHash, here are the ${uploadedFilesArray.length} successful uploads: `,uploadedFilesArray);
+        console.log(`Waiting ${DELAY_IN_SECONDS}s and trying again.`);
+          await new Promise((res) => setTimeout(res, DELAY_IN_SECONDS * 1000));
       }
     }
-    // We know from control flow that rootHash must exist at this point in
-    // execution, but TS doesn't see it.  This check confirms it.
-    if (!rootHash) throw new Error(`Still no rootHash, bailing out after ${attempts} failed attempts.`);
     const pinRes = await ipfsClient.pin.add(rootHash.hash);
     console.log('---------- IPFS UPLOAD DETAILS ----------');
-    console.log(`Uploaded the following path & hash pairs : `, uploadedFilesArray.map((res) => `${res.path}: ${res.hash}`));
+    console.log(`Uploaded the following ${uploadedFilesArray.length} path & hash pairs : `, uploadedFilesArray.map((res) => `${res.path}: ${res.hash}`));
     console.log(`Root Hash Result (onlyHash): `, rootHash);
     console.log(`Pinned the following hashes: `,pinRes);
     return rootHash;
