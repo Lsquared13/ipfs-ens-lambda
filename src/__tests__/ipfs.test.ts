@@ -38,7 +38,7 @@ describe('IPFS upload service', function(){
     } catch (err) {
       console.log(err);
     }
-  }, 150000)
+  }, 600000)
 
   test('Check if text buffer is available', async () => {
     
