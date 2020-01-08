@@ -38,7 +38,6 @@ async function ipfsCreate(basePath:string, zipStream: stream.Readable): Promise<
           const path = `build/${entry.path}`;
           files.push({ content, path });
         } else {
-          console.log('Ignoring entry: ',entry);
           entry.autodrain()
         }
       })
