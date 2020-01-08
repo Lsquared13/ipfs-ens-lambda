@@ -1,5 +1,4 @@
 import { SQSEvent, SQSRecord } from '@eximchain/api-types/spec/events';
-import processor from './processor';
 import { successResponse, unexpectedErrorResponse } from '@eximchain/api-types/spec/responses';
 import { DynamoDB } from "../services"
 
@@ -39,17 +38,17 @@ function stateProcessor(state:any) {
             // TODO: Else if we have a new transaction, submit it, record
             // the receipt/nonce/timestamp in state, write a delayed 
             // retry message, & exit.
-          return processor.create;
+          // return processor.create;
       case 'register-ens-registrar':
              // TODO: If last transaction isn't finished, write a delayed
             // retry onto the queue and then exit.
-          return processor.update;
+          // return processor.update;
       case 'register-ipfs-hash':
             // TODO: If last transaction is complete:
             //   1. Write that into state 
             //   2. Delete the associated CodePipeline.
             //   3. Delete the associated S3 artifact bucket.
-          return processor.delete;
+          // return processor.delete;
       default:
           return (body:any) => Promise.reject({message: `Unrecognized state transition for processing`});
   }
