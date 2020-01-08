@@ -35,8 +35,4 @@ const getAccessToken = async(event:APIGatewayEvent) => {
   }  
 }
 
-interface AuthCode {
-  code: string
-}
-
 export default getAccessToken;

@@ -11,7 +11,9 @@ export const DynamoDB = {
   listDeployItems,
   initDeployItem,
   getDeployItem,
+  getDeployItemByPipeline,
   updateDeployItem,
+  setTransitionErr,
   addSourceTransition,
   addBuildTransition,
   addIpfsTransition,
@@ -35,7 +37,7 @@ export default DynamoDB;
  */
 function initDeployItem(deployArgs:DeployArgs, username:string, codepipelineName:string) {
   let maxRetries = 5;
-  let now = new Date().toString();
+  let now = new Date().toISOString();
   let deployItem = Object.assign(deployArgs, {
     createdAt: now,
     updatedAt: now,
@@ -60,6 +62,13 @@ async function getDeployItem(ensName:string):Promise<DeployItem | null> {
   const ddbItem = await getRawDeployItem(ensName);
   if (!ddbItem.Item) return null;
   return deployItemFromDDB(ddbItem.Item);
+}
+
+async function getDeployItemByPipeline(pipelineName:string):Promise<DeployItem | null> {
+  const ddbItem = await getRawDeployItemByPipeline(pipelineName);
+  const { Count, Items } = ddbItem;
+  if (!Count || !Items) return null;
+  return deployItemFromDDB(Items[0]);
 }
 
 async function listDeployItems(username:string):Promise<DeployItem[]> {
@@ -109,7 +118,7 @@ function ddbFromDeployItem(deployItem:DeployItem) {
   const { 
     buildDir, branch, ensName, owner, repo, createdAt, updatedAt,
     username, state, codepipelineName, transitions, sourceProvider,
-    packageDir
+    packageDir, transitionError
   } = deployItem;
 
   // Add required parameters
@@ -129,16 +138,16 @@ function ddbFromDeployItem(deployItem:DeployItem) {
     'State': stringAttr(state),
     'CodepipelineName': stringAttr(codepipelineName)
   }
-
+  if (transitionError) dbItem['TransitionError'] = stringAttr(JSON.stringify(transitionError))
   return dbItem;
 }
 
 function deployItemFromDDB(dbItem:PutItemInputAttributeMap):DeployItem {
   const { 
     BuildDir, Owner, Repo, Branch, EnsName, CreatedAt, UpdatedAt, Username,
-    PackageDir, Transitions, State, CodepipelineName, SourceProvider
+    PackageDir, Transitions, State, CodepipelineName, SourceProvider, TransitionError
   } = dbItem;
-  const deployItem = {
+  const deployItem:DeployItem = {
     buildDir: BuildDir.S as string,
     packageDir: PackageDir.S as string,
     owner: Owner.S as string,
@@ -153,6 +162,7 @@ function deployItemFromDDB(dbItem:PutItemInputAttributeMap):DeployItem {
     codepipelineName: CodepipelineName.S as string,
     sourceProvider: SourceProvider.S as SourceProviders
   };
+  if (TransitionError) deployItem.transitionError = JSON.parse(TransitionError.S as string);
   return deployItem;
 }
 
@@ -164,6 +174,20 @@ function getRawDeployItem(ensName:string) {
   };
 
   return addAwsPromiseRetries(() => ddb.getItem(getItemParams).promise(), maxRetries);
+}
+
+function getRawDeployItemByPipeline(pipelineName:string) {
+  let maxRetries = 5;
+  let getItemParams = {
+    TableName: deployTableName,
+    IndexName: 'CodepipelineNameIndex',
+    KeyConditionExpression: 'CodepipelineName = :pipeline',
+    ExpressionAttributeValues: { 
+      ':pipeline' : {S: pipelineName} 
+    }
+  };
+
+  return addAwsPromiseRetries(() => ddb.query(getItemParams).promise(), maxRetries);
 }
 
 /**
@@ -198,8 +222,20 @@ function putRawDeployItem(item:PutItemInputAttributeMap) {
 
 // Transitions
 
+async function setTransitionErr(ensName:string, transition:Transitions.Names.All, message: string) {
+  let now = new Date().toISOString();
+  let itemUpdater = (item:DeployItem) => {
+    let newItem = lodash.cloneDeep(item);
+    newItem.transitionError = {
+      transition, message, timestamp: now
+    }
+    return newItem;
+  }
+  return updateDeployItem(ensName, itemUpdater)
+}
+
 async function addPipelineTransition(transition:Transitions.Names.Pipeline, ensName:string, size:number) {
-  let now = new Date().toString();
+  let now = new Date().toISOString();
   let itemUpdater = (item:DeployItem) => {
     let newItem = lodash.cloneDeep(item);
     newItem.transitions[transition] = {
@@ -222,7 +258,7 @@ async function addBuildTransition(ensName:string, size:number) {
 }
 
 async function addIpfsTransition(ensName:string, hash:string) {
-  let now = new Date().toString();
+  let now = new Date().toISOString();
   let itemUpdater = (item:DeployItem) => {
     let newItem = lodash.cloneDeep(item);
     newItem.transitions[Transitions.Names.All.IPFS] = {
@@ -238,7 +274,7 @@ async function addIpfsTransition(ensName:string, hash:string) {
 
 async function addEnsTransition(transition:Transitions.Names.Ens,
                                 ensName:string, txHash:string, nonce:number) {
-  let now = new Date().toString();
+  let now = new Date().toISOString();
   let itemUpdater = (item:DeployItem) => {
     let newItem = lodash.cloneDeep(item);
     newItem.transitions[transition] = {

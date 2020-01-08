@@ -1,8 +1,9 @@
 import { CodePipeline, S3, SQS , DynamoDB} from '../services';
 import { ResponseOptions } from '@eximchain/api-types/spec/responses';
 import { CodePipelineEvent } from '@eximchain/api-types/spec/events';
-import  ipfs from '../services/ipfs'
+import ipfs from '../services/ipfs'
 import {logSuccess} from "../common"
+import { Transitions } from '@eximchain/ipfs-ens-types/spec/deployment';
 
 const DeployIpfs = async (event: CodePipelineEvent) => {
     let responseOpts: ResponseOptions = {}
@@ -41,6 +42,8 @@ const DeployIpfs = async (event: CodePipelineEvent) => {
         throw new Error('did not recieve response from ipfs add with pin, try again later could be Infura');
     } catch (err) {
         //TODO: Write failures to a retry queue?
+
+        await DynamoDB.setTransitionErr(EnsName, Transitions.Names.All.IPFS, err.toString());
         return await CodePipeline.failJob(id, err);
     }
 }

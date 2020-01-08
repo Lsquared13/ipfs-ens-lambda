@@ -3,6 +3,7 @@ import zip from 'node-zip';
 import { S3ArtifactLocation, Credentials } from '@eximchain/api-types/spec/events';
 import { AWS } from '../env';
 import { addAwsPromiseRetries } from "../common";
+import { CodePipeline } from 'aws-sdk';
 
 const s3 = new AWS.S3({apiVersion: '2006-03-01'});
 
@@ -55,12 +56,12 @@ function promiseCreateS3Bucket(bucketName:string) {
   return addAwsPromiseRetries(() => s3.createBucket(params).promise(), maxRetries);
 }
 
-async function promiseGetSize(location:S3ArtifactLocation):Promise<number | undefined> {
+async function promiseGetSize(location:CodePipeline.S3Location):Promise<number> {
   let maxRetries = 5;
   let params = {
-    Bucket: location.bucketName,
-    Key: location.objectKey
+    Bucket: location.bucket as string,
+    Key: location.key as string
   }
   const res = await addAwsPromiseRetries(() => s3.headObject(params).promise(), maxRetries);
-  return res.ContentLength
+  return res.ContentLength || -1;
 }
