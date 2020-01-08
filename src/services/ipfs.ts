@@ -34,7 +34,7 @@ async function ipfsCreate(basePath:string, zipStream: stream.Readable): Promise<
       .on('entry', async (entry: Entry) => {
         if (entry.path !== '' && entry.type === 'File') {
           const content = await entry.buffer();
-          const path = entry.path;
+          const path = `build/${entry.path}`;
           files.push({ content, path });
         } else {
           console.log('Ignoring entry: ',entry);
@@ -44,13 +44,30 @@ async function ipfsCreate(basePath:string, zipStream: stream.Readable): Promise<
       .promise()
     
     console.log('Files we are adding: ',files.map(file => file.path));
-    const allHashesArray: ipfsCreateResponse[] = await ipfsClient.add(files, { wrapWithDirectory: true, onlyHash: true });
-    const rootHash = allHashesArray[allHashesArray.length - 1]
-    const uploadedFilesArray: ipfsCreateResponse[] = await ipfsClient.add(files, { wrapWithDirectory: true });
+    // let rootHash;
+    
+    let uploadedFilesArray:ipfsCreateResponse[] = [];
+    let rootHash:ipfsCreateResponse = { path : '', hash: '' };
+    let attempts = 3;
+    while (attempts > 0) {
+      uploadedFilesArray = await ipfsClient.add(files);
+      rootHash = uploadedFilesArray[uploadedFilesArray.length - 1];
+      if (rootHash.path === 'build') {
+        // Success, move on
+        attempts = 0;
+      } else {
+        // Failure, eithe retry or bail out
+        if (attempts > 1) {
+          console.log(`Upload result did not have root hash, final path hash was ${rootHash.path}.  Waiting 5s and trying again.`);
+          await new Promise((res) => setTimeout(res, 5000));
+          attempts--;
+        } else {
+          throw new Error(`Upload result did not have root hash; hash path on final attempt was ${rootHash.path}.  Bailing out after ${attempts} failed attempts.`);
+        }
+      }
+    }
     const pinRes = await ipfsClient.pin.add(rootHash.hash);
     console.log('---------- IPFS UPLOAD DETAILS ----------');
-    console.log(`Buffered following paths into memory : `, files.map(file => file.path))
-    console.log('All hashes array: ', allHashesArray.map(res => `${res.path}: ${res.hash}`));
     console.log(`Uploaded the following path & hash pairs : `, uploadedFilesArray.map((res) => `${res.path}: ${res.hash}`));
     console.log(`Root Hash Result (onlyHash): `, rootHash);
     console.log(`Pinned the following hashes: `,pinRes);
