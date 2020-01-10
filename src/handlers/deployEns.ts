@@ -2,13 +2,7 @@ import { SQSEvent, SQSRecord } from '@eximchain/api-types/spec/events';
 import { successResponse, unexpectedErrorResponse } from '@eximchain/api-types/spec/responses';
 import { DynamoDB, SQS, ENS, CodePipeline, IPFS, EnsTransitionFxns } from "../services"
 import { DeployItem, DeployStates, Transitions } from '@eximchain/ipfs-ens-types/spec/deployment';
-import { ensRootDomain, ethAddress } from '../env';
-import web3, { getBlockTimestamp } from '../services/web3';
-
-interface SqsMessageBody {
-  Method: string
-  EnsName: string
-}
+import web3, { getBlockTimestamp, getTxnCount } from '../services/web3';
 
 /**
  * invariant: this Lambda function feeds from an SQS trigger with Batch Size set to one (only one record in each event)
@@ -74,7 +68,7 @@ async function processRecord(record: SQSRecord) {
       return new Promise((res) => res());
 
     default:
-      return (body: any) => Promise.reject({ message: `Unrecognized state transition for processing` });
+      return () => Promise.reject({ message: `Unrecognized state transition for processing` });
   }
 }
 
@@ -90,7 +84,7 @@ async function handleTxTransitions(transitionConfig:TxTransitionConfig) {
   const transition = item.transitions[stage];
   const transitionFxn = EnsTransitionFxns[stage];
   if (!transition) {
-    const chainNonce = await web3.eth.getTransactionCount(ethAddress);
+    const chainNonce = await getTxnCount();
     const savedNonce = await DynamoDB.getNextNonceEthereum();
     if (chainNonce === savedNonce) {
       const txHash:string = await txThunk(savedNonce);
