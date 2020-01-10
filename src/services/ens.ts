@@ -1,7 +1,7 @@
 // @ts-ignore No types available yet for ethereum-ens
 import ENS from 'ethereum-ens';
 import { web3Provider, web3 } from './web3';
-import { defaultGasPrice} from '../env';
+import { defaultGasPrice, ensRootDomain } from '../env';
 import { AbiType, StateMutabilityType } from 'web3-utils';
 
 
@@ -42,6 +42,26 @@ var ensResolver = new web3.eth.Contract(RESOLVER_ABI, PUBLIC_ENS_RESOLVER_ADDR, 
   gasPrice: ethGasEstimate? ethGasEstimate: defaultGasPrice // default gas price in wei, 20 gwei in this case
 });
 
+export async function isTxConfirmed(txHash:string) {
+  // Pending transactions have their blockHash set to null,
+  // so just check for truthiness
+  const tx = await web3.eth.getTransaction(txHash);
+  return !!tx.blockHash;
+}
+
+export async function nonceReady(): Promise<boolean | number> {
+  // Check to see our current nonce on-chain
+
+  // Check to see our current nonce in data
+
+  // If our data nonce & confirmed nonce match, then we
+  // can continue
+
+  // CHECK PENDING TRANSACTIONS
+  // SPEED UP PENDING TRANSACTIONS
+
+  return false;
+}
 
 export async function getBlockNumber(){
   try{
@@ -55,7 +75,7 @@ export async function getBlockNumber(){
 export async function isNameAvailable(name:string) {
   try {
     //Register the subdomain and assign the root domain address as owner to allow us to manage
-    const domain = `${name}.eth`
+    const domain = `${name}.${ensRootDomain}.eth`
     const resolver = await ensLib.resolver(domain);
     const result = await resolver.addr();
     
@@ -68,7 +88,6 @@ export async function isNameAvailable(name:string) {
   }
 
 }
-
 
 /**
  * setSubnodeOwner sets the owner of the specified name. The calling account
@@ -83,7 +102,7 @@ export async function isNameAvailable(name:string) {
 export async function makeSubDomain(name:string) {
   try {
     //Register the subdomain and assign the root domain address as owner to allow us to manage
-    const result = await ensLib.setSubnodeOwner(`${name}.deploy.eth`, ethAddress, {from: ethAddress});
+    const result = await ensLib.setSubnodeOwner(`${name}.${ensRootDomain}.eth`, ethAddress, {from: ethAddress});
       
     console.log(`\tSuccessfully set subdomain resolver. Transaction hash: ${result.tx}.`)
     return result;
@@ -153,8 +172,6 @@ const ens = {
   addIpfsToResolver      : addIpfsToResolver,
   ensResolverContract    : ensResolver,
   ensContract            : {} 
-
-
 }
 
 export default ens;

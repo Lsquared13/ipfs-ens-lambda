@@ -33,62 +33,62 @@ describe('IPFS upload service', function(){
     expect(data).toBe("0x226159d592E2b063810a10Ebf6dcbADA94Ed68b8")
   });
 
-  test('ENS subdomain is available check succeeds', async () => {
+  // test('ENS subdomain is available check succeeds', async () => {
     
-    // const data = await ens.isNameAvailable(availableSubDomain)
-    // expect(data).toBeFalsy()
-  });
+  //   // const data = await ens.isNameAvailable(availableSubDomain)
+  //   // expect(data).toBeFalsy()
+  // });
 
-  test('ENS subdomain is not available check fails', async () => {
+  // test('ENS subdomain is not available check fails', async () => {
   
-    // const data = await ens.isNameAvailable(unavailableSubDomain)
-    // expect(data).toBeFalsy()
-  });
+  //   // const data = await ens.isNameAvailable(unavailableSubDomain)
+  //   // expect(data).toBeFalsy()
+  // });
 
-  test('Create subdomain using root domain Owner succeeds', async () => {
+  // test('Create subdomain using root domain Owner succeeds', async () => {
     
-    // const data = await ens.makeSubDomain(availableSubDomain)
-    // expect(data).toBeTruthy()
-  });
+  //   // const data = await ens.makeSubDomain(availableSubDomain)
+  //   // expect(data).toBeTruthy()
+  // });
 
-  test('Create subdomain using non-owner address fails', async () => {
-    // const data = await ens.makeSubDomain(unownedSubDomain)
-    // expect(data).toBeTruthy()
-  });
+  // test('Create subdomain using non-owner address fails', async () => {
+  //   // const data = await ens.makeSubDomain(unownedSubDomain)
+  //   // expect(data).toBeTruthy()
+  // });
 
-  test('Create subdomain that already exists fails', async () => {
-    // const data = await ens.makeSubDomain(unavailableSubDomain)
-    // expect(data).toBeTruthy()
-  });
+  // test('Create subdomain that already exists fails', async () => {
+  //   // const data = await ens.makeSubDomain(unavailableSubDomain)
+  //   // expect(data).toBeTruthy()
+  // });
 
 
-  test('attach new subdomain resolver succeeds', async () => {
-    //  const data = await ens.attachSubDomainResolver(availableSubDomain))
-    // expect(data).toBeTruthy()
-  });
+  // test('attach new subdomain resolver succeeds', async () => {
+  //   //  const data = await ens.attachSubDomainResolver(availableSubDomain))
+  //   // expect(data).toBeTruthy()
+  // });
 
-  test('attach subdomain resolver fails if one already exists', async () => {
-    // const data = await ens.attachSubDomainResolver(availableSubDomain)
-    // expect(data).toBeTruthy()
-  });
+  // test('attach subdomain resolver fails if one already exists', async () => {
+  //   // const data = await ens.attachSubDomainResolver(availableSubDomain)
+  //   // expect(data).toBeTruthy()
+  // });
 
-  test('attach new IPFS hash to resolver succeeds', async () => {
-    //  const data = await ens.addIpfsToResolver(availableSubDomain, hash)
-    // expect(data).toBeTruthy()
-  });
+  // test('attach new IPFS hash to resolver succeeds', async () => {
+  //   //  const data = await ens.addIpfsToResolver(availableSubDomain, hash)
+  //   // expect(data).toBeTruthy()
+  // });
 
-  test('attach IPFS hash to resolver succeeds if one already exists', async () => {
-    // const data = await ens.attachSubDomainResolver(unavailableSubDomain)
-    // expect(data).toBeTruthy()
-  });
+  // test('attach IPFS hash to resolver succeeds if one already exists', async () => {
+  //   // const data = await ens.attachSubDomainResolver(unavailableSubDomain)
+  //   // expect(data).toBeTruthy()
+  // });
 
-  test('malformed transaction fails', async () => {
+  // test('malformed transaction fails', async () => {
     
-  });
+  // });
 
-  test('invalid user input fails', async () => {
+  // test('invalid user input fails', async () => {
    
-  });
+  // });
 })
 
 
