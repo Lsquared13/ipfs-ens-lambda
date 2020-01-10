@@ -373,6 +373,7 @@ function putRawNonceItem(item:PutItemInputAttributeMap) {
 
 async function getNextNonceForChain(chain:Chains.Names):Promise<number> {
   let nonceItem = await getRawNonceItem(chain);
+  // TODO: Initialize the nonce item if one is not found
   if (!nonceItem.Item) throw new Error(`Get nonce error: No nonce item found for ${chain}`);
   let nextNonce = nonceItem.Item.NextNonce.N;
   if (!nextNonce) throw new Error(`Get nonce error: No NextNonce found in item for  ${chain}`);
