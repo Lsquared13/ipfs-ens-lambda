@@ -272,6 +272,21 @@ async function addIpfsTransition(ensName:string, hash:string) {
   return updateDeployItem(ensName, itemUpdater);
 }
 
+export const EnsTransitionFxns = {
+  [Transitions.Names.All.ENS_REGISTER] : {
+    add: addEnsRegisterTransition,
+    complete: completeEnsRegisterTransition
+  },
+  [Transitions.Names.All.ENS_SET_RESOLVER] : {
+    add: addEnsSetResolverTransition,
+    complete: completeEnsSetResolverTransition
+  },
+  [Transitions.Names.All.ENS_SET_CONTENT] : {
+    add: addEnsSetContentTransition,
+    complete: completeEnsSetContentTransition
+  }
+}
+
 async function addEnsTransition(transition:Transitions.Names.Ens,
                                 ensName:string, txHash:string, nonce:number) {
   let now = new Date().toISOString();
@@ -365,11 +380,11 @@ async function getNextNonceForChain(chain:Chains.Names):Promise<number> {
 }
 
 // Should be called immediately after sending a transaction with currentNonce
-async function incrementNextNonceForChain(chain:Chains.Names, currentNonce:number) {
-  let newNonce = currentNonce + 1;
+async function incrementNextNonceForChain(chain:Chains.Names) {
   let currentNonceItem = await getRawNonceItem(chain);
   if (!currentNonceItem.Item) throw new Error(`Set nonce error: No nonce item found for ${chain}`);
   let newNonceItem = currentNonceItem.Item;
+  let newNonce = parseInt(newNonceItem.NextNonce.N as string) + 1;
   let newNonceAttr = {'N': newNonce.toString()};
   newNonceItem.NextNonce = newNonceAttr;
   return await putRawNonceItem(newNonceItem);
@@ -379,6 +394,6 @@ async function getNextNonceEthereum():Promise<number> {
   return await getNextNonceForChain(Chains.Names.Ethereum);
 }
 
-async function incrementNextNonceEthereum(currentNonce:number) {
-  return await incrementNextNonceForChain(Chains.Names.Ethereum, currentNonce);
+async function incrementNextNonceEthereum() {
+  return await incrementNextNonceForChain(Chains.Names.Ethereum);
 }

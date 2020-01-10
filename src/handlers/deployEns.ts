@@ -1,8 +1,9 @@
 import { SQSEvent, SQSRecord } from '@eximchain/api-types/spec/events';
 import { successResponse, unexpectedErrorResponse } from '@eximchain/api-types/spec/responses';
-import { DynamoDB, isTxConfirmed, nonceReady, SQS } from "../services"
-import { DeployItem, DeployStates } from '@eximchain/ipfs-ens-types/spec/deployment';
-import { ensRootDomain } from '../env';
+import { DynamoDB, SQS, ENS, CodePipeline, IPFS, EnsTransitionFxns } from "../services"
+import { DeployItem, DeployStates, Transitions } from '@eximchain/ipfs-ens-types/spec/deployment';
+import { ensRootDomain, ethAddress } from '../env';
+import web3, { getBlockTimestamp } from '../services/web3';
 
 interface SqsMessageBody {
   Method: string
@@ -25,6 +26,7 @@ const DeployEns = async (event: SQSEvent) => {
     let result = await processRecordsPromise;
     return successResponse(result);
   } catch (err) {
+    console.log(`Error processing record: `,err);
     throw unexpectedErrorResponse(err);
   }
 
@@ -33,28 +35,42 @@ const DeployEns = async (event: SQSEvent) => {
 async function processRecord(record: SQSRecord) {
 
   //Retrieve DDB state to figure out what to do
-  let body: SqsMessageBody = JSON.parse(record.body);
-  let item = await DynamoDB.getDeployItem(body.EnsName);
-
-  if (item == null) {
-    //TODO: RETRY SQS MESSAGE 
-    return Error("failed to fetch database record")
+  let item = await DynamoDB.getDeployItem(record.body);
+  
+  if (item === null) {
+    throw new Error("failed to fetch database record")
   }
 
+  let ensName = item.ensName;
   switch (item.state) {
     case DeployStates.REGISTERING_ENS:
-      return await handleRegisterTransitions(item);
+      return await handleTxTransitions({
+        item,
+        stage: Transitions.Names.All.ENS_REGISTER,
+        txThunk: async (nonce) => await ENS.makeSubDomain(ensName, nonce)
+      });
     
     case DeployStates.SETTING_RESOLVER_ENS:
-      return await handleResolverTransitions(item);
+      return await handleTxTransitions({
+        item,
+        stage: Transitions.Names.All.ENS_SET_RESOLVER,
+        txThunk: async (nonce) => await ENS.attachSubDomainResolver(ensName, nonce)
+      })
     
     case DeployStates.SETTING_CONTENT_ENS:
-      return await handleContentTransitions(item);
+      if (!item.transitions.ipfs) throw new Error("handleContentTransitions should never be called on a deployment missing an IPFS transition object.");
+      const ipfsHash = item.transitions.ipfs.hash;
+      return await handleTxTransitions({
+        item,
+        stage: Transitions.Names.All.ENS_SET_CONTENT,
+        txThunk: async (nonce) => await ENS.addIpfsToResolver(ensName, ipfsHash, nonce)
+      })
     
     case DeployStates.PROPAGATING:
-      return await handlePropagationTransitions(item);
+      return await handlePropagationTransition(item);
 
     case DeployStates.AVAILABLE:
+      console.log(`Received a message about ${ensName}, which is already available.  No-op.`)
       return new Promise((res) => res());
 
     default:
@@ -62,86 +78,55 @@ async function processRecord(record: SQSRecord) {
   }
 }
 
-async function handleRegisterTransitions(item:DeployItem) {
-  const transition = item.transitions.ensRegister;
-  // Do we have an object with a transaction hash?
-  if (!transition) {
-    const addressReady = await nonceReady();
-    if (addressReady) {
-      // Make this transaction happen
+interface TxTransitionConfig {
+  item:DeployItem, 
+  stage:Transitions.Names.Ens, 
+  txThunk:(nonce:number) => Promise<string>
+}
 
-      // Update object w/ hash & nonce
-      
+async function handleTxTransitions(transitionConfig:TxTransitionConfig) {
+  const { item, stage, txThunk } = transitionConfig;
+  const { ensName } = item;
+  const transition = item.transitions[stage];
+  const transitionFxn = EnsTransitionFxns[stage];
+  if (!transition) {
+    const chainNonce = await web3.eth.getTransactionCount(ethAddress);
+    const savedNonce = await DynamoDB.getNextNonceEthereum();
+    if (chainNonce === savedNonce) {
+      const txHash:string = await txThunk(savedNonce);
+      const addRes = await transitionFxn.add(ensName, txHash, savedNonce);
+      const incrementRes = await DynamoDB.incrementNextNonceEthereum()
+      console.log(`Added ${stage} transition of ${ensName} w/ nonce ${savedNonce} & txHash ${txHash}: `,addRes)
     }
   } else {
     const txHash = transition.txHash;
-    const txConfirmed = await isTxConfirmed(txHash);
-    if (txConfirmed) {
-      // Yes: Update current transition object with confirmation
-      // timestamp, then update state to the next one
+    const txReceipt = await web3.eth.getTransaction(txHash)
+    const txBlocknum = txReceipt.blockNumber;
+    if (typeof txBlocknum === 'number') {21
+      const blockTimestamp = await getBlockTimestamp(txBlocknum);
+      const confirmRes = await transitionFxn.complete(ensName, txBlocknum, blockTimestamp.toISOString());
+      console.log(`Confirmed ${stage} transition of ${ensName} on blockNum ${txBlocknum} at ${blockTimestamp.toISOString()}: `, confirmRes);
     }
   }
   SQS.sendMessage(item.ensName, 30);
 }
 
-async function handleResolverTransitions(item:DeployItem) {
-  const transition = item.transitions.ensSetResolver;
-  if (!transition) {
-    const addressReady = await nonceReady();
-    if (addressReady) {
-      // Make this transaction happen
-
-      // Update object with hash & nonce
-
-    }
-  } else {
-    const txHash = transition.txHash;
-    const txConfirmed = await isTxConfirmed(txHash);
-    if (txConfirmed) {
-      // Update object w/ timestamp & blockNum
-
-      // Update state to Content
-      
-    }
-  }
-  SQS.sendMessage(item.ensName, 30);
-}
-
-async function handleContentTransitions(item:DeployItem) {
-  const transition = item.transitions.ensSetContent;
-  if (!transition) {
-    const addressReady = await nonceReady();
-    if (addressReady) {
-      // Make this transaction happen
-
-      // Update object w/ hash & nonce
-      
-    }
-  } else {
-    const txHash = transition.txHash;
-    const txConfirmed = await isTxConfirmed(txHash);
-    if (txConfirmed) {
-      // Yes: Update current transition object with confirmation
-      // timestamp, then update state to the next one
-    }
-  }
-  SQS.sendMessage(item.ensName, 30);
-}
-
-async function handlePropagationTransitions(item:DeployItem) {
+async function handlePropagationTransition(item:DeployItem) {
   if (!item.transitions.ipfs) {
     throw new Error('handlePropagationTransitions should never be called on an item missing its transitions.ipfs object.')
   }
-  const domainName = `${item.ensName}.${ensRootDomain}.eth`;
-  const ipfsHash = item.transitions.ipfs;
-  // TODO: Check that IPFS hash is available & ENS name resolves
+  let ipfsPropagated = await IPFS.read(item.transitions.ipfs.hash);
+  let ensPropagated = await ENS.isNameAvailable(item.ensName);
 
-  const propagated = false;
-  if (propagated) {
-    // TODO: If propagation is complete:
-    //   1. Transition object to AVAILABLE
-    //   2. Delete the associated CodePipeline.
-    //   3. Delete the associated S3 artifact bucket.
+  if (ipfsPropagated.exists && ensPropagated) {
+    const finalTransition = await DynamoDB.updateDeployItem(item.ensName, (item) => {
+      item.state = DeployStates.AVAILABLE;
+      return item;
+    })
+    const deletedPipeline = await CodePipeline.delete(item.codepipelineName);
+    return successResponse({
+      message: `Successfully transitioned ${item.ensName} to AVAILBLE and deleted its CodePipeline.`
+    })
   } else {
     // Wait a minute & check again
     SQS.sendMessage(item.ensName, 60);

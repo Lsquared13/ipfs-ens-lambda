@@ -17,4 +17,11 @@ web3.eth.accounts.wallet.add(account);
 web3.eth.defaultAccount = account.address;
 web3.eth.defaultAccount === ethAddress;
 
+
+export async function getBlockTimestamp(blockHash: number):Promise<Date> {
+  const { timestamp } = await web3.eth.getBlock(blockHash);
+  const timeInSeconds = typeof timestamp === 'string' ? parseInt(timestamp) : timestamp;
+  return new Date(timeInSeconds * 1000);
+}
+
 export default web3;
