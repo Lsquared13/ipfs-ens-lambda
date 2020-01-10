@@ -26,6 +26,9 @@ beforeEach(async () => {
 
 describe('IPFS upload service', function(){
 
+  // Uploads may need to be repeated in order to succeed,
+  // so give this test up to 10 minutes to succeed.
+  const ZIP_UPLOAD_TIMEOUT_MS = 10 * 60 * 1000;
   test('Upload zip directory to IPFS', async () => {
     try {
       const testStream = fs.createReadStream(zipPath);
@@ -38,7 +41,7 @@ describe('IPFS upload service', function(){
     } catch (err) {
       console.log(err);
     }
-  }, 600000)
+  }, ZIP_UPLOAD_TIMEOUT_MS)
 
   test('Check if text buffer is available', async () => {
     
