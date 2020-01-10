@@ -97,15 +97,19 @@ async function handleTxTransitions(transitionConfig:TxTransitionConfig) {
       const addRes = await transitionFxn.add(ensName, txHash, savedNonce);
       const incrementRes = await DynamoDB.incrementNextNonceEthereum()
       console.log(`Added ${stage} transition of ${ensName} w/ nonce ${savedNonce} & txHash ${txHash}: `,addRes)
+    } else {
+      console.log('Still waiting for a previous transaction to mine, retrying in 30s.');
     }
   } else {
     const txHash = transition.txHash;
     const txReceipt = await web3.eth.getTransaction(txHash)
     const txBlocknum = txReceipt.blockNumber;
-    if (typeof txBlocknum === 'number') {21
+    if (typeof txBlocknum === 'number') {
       const blockTimestamp = await getBlockTimestamp(txBlocknum);
       const confirmRes = await transitionFxn.complete(ensName, txBlocknum, blockTimestamp.toISOString());
       console.log(`Confirmed ${stage} transition of ${ensName} on blockNum ${txBlocknum} at ${blockTimestamp.toISOString()}: `, confirmRes);
+    } else {
+      console.log('Still waiting for this transaction to be confirmed, retrying in 30s.');
     }
   }
   SQS.sendMessage(item.ensName, 30);
@@ -129,6 +133,7 @@ async function handlePropagationTransition(item:DeployItem) {
     })
   } else {
     // Wait a minute & check again
+    console.log(`IPFS & ENS propagation for ${item.ensName} still incomplete; retrying in 60s.`)
     SQS.sendMessage(item.ensName, 60);
   }
 }
