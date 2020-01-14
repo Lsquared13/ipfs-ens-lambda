@@ -4,6 +4,7 @@ import { S3ArtifactLocation, Credentials } from '@eximchain/api-types/spec/event
 import { AWS } from '../env';
 import { addAwsPromiseRetries } from "../common";
 import { CodePipeline } from 'aws-sdk';
+import { Readable, Duplex } from 'stream';
 
 const s3 = new AWS.S3({apiVersion: '2006-03-01'});
 
@@ -39,12 +40,25 @@ function promiseGetS3ObjectWithCredentials(bucketName:string, objectKey:string, 
 
 async function downloadArtifact(artifactLocation:S3ArtifactLocation, artifactCredentials:Credentials) {
   let getObjectResult = await promiseGetS3ObjectWithCredentials(artifactLocation.bucketName, artifactLocation.objectKey, artifactCredentials);
-  console.log("Successfully retrieved artifact: ", getObjectResult);
+  let artifact = getObjectResult.Body;
+  if (!artifact) throw new Error('Artifact had an undefined body.');
+  if (artifact instanceof Readable) {
+    console.log('Artifact is already a Readable stream')
+    return artifact;
+  }
 
-  let zipArtifact = zip(getObjectResult.Body, {base64: false, checkCRC32: true});
-  console.log("Loaded Zip Artifact");
-
-  return zipArtifact;
+  const artifactStream = new Duplex();
+  if (
+    (Buffer.isBuffer(artifact)) ||
+    (artifact instanceof Uint8Array) ||
+    (typeof artifact === 'string')
+  ) {
+    artifactStream.push(artifact);
+    artifactStream.push(null);
+    return artifactStream;
+  } else {
+    throw new Error('Received a blob, rather than a string, buffer, readable stream, or Uint8Array. Cannot parse blobs, erroring out.');
+  }
 }
 
 function promiseCreateS3Bucket(bucketName:string) {

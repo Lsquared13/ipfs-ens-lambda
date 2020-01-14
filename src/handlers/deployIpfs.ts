@@ -19,30 +19,29 @@ const DeployIpfs = async (event: CodePipelineEvent) => {
 
     try {
         //NOTE: Compress zip ? assume its already compressed see if can optimize based on initial compression algo
-        let artifact = await S3.downloadArtifact(artifactLocation, artifactCredentials);
-        let result = await ipfs.create(artifact);
+        let artifactZipStream = await S3.downloadArtifact(artifactLocation, artifactCredentials);
+        let result = await ipfs.create(artifactZipStream);
         console.log('Result from ipfs.create: ',result);
-        const {path, hash, size} = result;
+        const {hash, size} = result;
         logSuccess("IPFS UPLOAD", hash);
-        if(path && hash && size){
+        if(hash && size){
             //NOTE: SEND SSQS MESSAGE TO START ENS TRANSACTION CHAIN, KEYED BY ENS NAME TO FETCH DDB state
             let sqsMessageBody = {
                 //TODO: extract out magic to types
                 Method : "DeployEns",
                 EnsName : EnsName
               }
-            await DynamoDB.addIpfsTransition(EnsName, hash);
             await SQS.sendMessage("DeployEns", JSON.stringify(sqsMessageBody));
+            await DynamoDB.addIpfsTransition(EnsName, hash);
             return await CodePipeline.completeJob(id);
         }
         console.log('IPFS Pin provided no response.');
-        console.log('path: ',path);
         console.log('hash: ',hash);
         console.log('size: ',size);
         throw new Error('did not recieve response from ipfs add with pin, try again later could be Infura');
     } catch (err) {
         //TODO: Write failures to a retry queue?
-
+        console.log('Error on deployIPFS: ',err);
         await DynamoDB.setTransitionErr(EnsName, Transitions.Names.All.IPFS, err.toString());
         return await CodePipeline.failJob(id, err);
     }

@@ -1,42 +1,78 @@
+// @ts-ignore
 import ipfshttpclient from 'ipfs-http-client';
+import { find } from 'lodash';
 import { operationNotImplemented } from '../common';
-import { resolve } from 'url';
+import stream from 'stream';
+import getStream from 'get-stream';
+import unzipper, { Entry } from 'unzipper';
 
+// @ts-ignore
+const ipfsClient = new ipfshttpclient({
+  host: 'ipfs.infura.io', protocol: 'https', port: 5001
+});
 
-const ipfsClient = new ipfshttpclient('ipfs.infura.io', 5001, { protocol: 'https' });
-
-
-
-interface ipfsCreateResponse{
+interface File {
+  path: string
+  content?: Buffer
+}
+interface ipfsCreateResponse {
   hash?: string
-  path?:string
-  size?:number
-  error?:boolean
+  path?: string
+  size?: number
+  error?: boolean
   errorObject?: Error
 }
 /**
  * Given a Buffer, write it to Inufra & return the `hash`
- * @param content 
+ * @param zipStream 
  */
-async function ipfsCreate(content:Buffer):Promise<ipfsCreateResponse>{
-  try{
-    const result = await ipfsClient.add(content, {pin:true});
-    console.log('Result inside of ipfsCreate: ',result);
-    const {path, hash, size} = result[0];
-    return {path, hash, size};
-  }catch(e){
-    return {
-      error: true,
-      errorObject: new Error(e)
-    }
+async function ipfsCreate(zipStream: stream.Readable): Promise<ipfsCreateResponse> {
+  const files: File[] = [];
 
+  try {
+    await zipStream
+      .pipe(unzipper.Parse())
+      .on('entry', async (entry: Entry) => {
+        if (entry.path !== '' && entry.type === 'File') {
+          const content = await entry.buffer();
+          const path = `build/${entry.path}`;
+          files.push({ content, path });
+        } else {
+          entry.autodrain()
+        }
+      })
+      .promise()
+    
+    console.log(`Attempting to upload the following ${files.length} files: `,files.map(file => file.path));
+    
+    let uploadedFilesArray:ipfsCreateResponse[] = [];
+    let rootHash:ipfsCreateResponse | undefined;
+    const DELAY_IN_SECONDS = 10;
+    while (!rootHash) {
+      uploadedFilesArray = await ipfsClient.add(files);
+      rootHash = find(uploadedFilesArray, (res) => res.path === 'build')
+      if (!rootHash) {
+        console.log(`Upload result did not include rootHash, here are the ${uploadedFilesArray.length} successful uploads: `,uploadedFilesArray);
+        console.log(`Waiting ${DELAY_IN_SECONDS}s and trying again.`);
+          await new Promise((res) => setTimeout(res, DELAY_IN_SECONDS * 1000));
+      }
+    }
+    const pinRes = await ipfsClient.pin.add(rootHash.hash);
+    console.log('---------- IPFS UPLOAD DETAILS ----------');
+    console.log(`Uploaded the following ${uploadedFilesArray.length} path & hash pairs : `, uploadedFilesArray.map((res) => `${res.path}: ${res.hash}`));
+    console.log(`Root Hash Result (onlyHash): `, rootHash);
+    console.log(`Pinned the following hashes: `,pinRes);
+    return rootHash;
+  } catch (e) {
+    console.log('Error in services/ipfs.ipfsCreate: ', e)
+    throw e;
   }
 }
 
 interface ipfsReadResponse {
-  cat? :string
-  exists? : boolean
-  error?:boolean
+  cat?: string
+  exists?: boolean
+  error?: boolean
   errorObject?: Error
 
 }
@@ -44,30 +80,36 @@ interface ipfsReadResponse {
  * TODO: Check if there is IPFS file at `hash`
  * @param hash  base58 encoded string representing IPFS hash like: 'QmXEmhrMpbVvTh61FNAxP9nU7ygVtyvZA8HZDUaqQCAb66"
  */
-async function ipfsRead(hash:string): Promise<ipfsReadResponse> {
-  try{
-    const results = await ipfsClient.cat(`/ipfs/${hash}`,{offset:0 ,length:2})
+async function ipfsRead(hash: string): Promise<ipfsReadResponse> {
+  try {
+    // Each character in a JS string is a 16-bit integer, so to grab
+    // the first character of a file, we want to get the first 2 bytes.
+    // https://stackoverflow.com/questions/2219526/how-many-bytes-in-a-javascript-string/46735247#46735247
+    const JS_CHAR_SIZE_IN_BYTES = 2;
+    const results = await ipfsClient.cat(`/ipfs/${hash}`, { offset: 0, length: JS_CHAR_SIZE_IN_BYTES });
     const cat = results.toString();
-    const exists = cat? true: false;
+    // Any non-empty string is truthy.
+    const exists = cat ? true : false;
     return {
       cat: cat,
       exists: exists
     }
 
-  }catch(e){
-    if (e == "Request timed out"){return {
+  } catch (e) {
+    if (e == "Request timed out") {
+      return {
         exists: false,
         error: true,
         errorObject: new Error(e)
       }
-    }else{
+    } else {
       return {
         exists: false,
         error: true,
         errorObject: new Error(e)
       }
     }
-    
+
 
   }
 
@@ -80,7 +122,7 @@ async function ipfsRead(hash:string): Promise<ipfsReadResponse> {
  * 3. Uploads file if not
  * @param hash 
  */
-async function ipfsUpdate(hash:string) {
+async function ipfsUpdate(hash: string) {
   return operationNotImplemented();
 }
 
@@ -88,7 +130,7 @@ async function ipfsUpdate(hash:string) {
  * TODO: Can't delete once it's on network, fail gracefully
  * @param hash 
  */
-async function ipfsDelete(hash:string) {
+async function ipfsDelete(hash: string) {
   return operationNotImplemented();
 }
 
@@ -96,7 +138,7 @@ async function ipfsDelete(hash:string) {
  * List IPFS info about file if it exists
  * @param hash 
  */
-async function ipfsList(hash:string) {
+async function ipfsList(hash: string) {
   return operationNotImplemented();
 }
 

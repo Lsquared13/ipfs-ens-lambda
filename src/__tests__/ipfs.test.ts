@@ -1,8 +1,12 @@
 import ipfs from "../services/ipfs"
 import utils from "./utils/common"
+import fs from 'fs';
+import path from 'path';
 
 let dummyContent:Buffer;
 let dummyHash:string;
+
+const zipPath = path.resolve(__dirname, './utils/sampleBuild.zip');
 
 beforeAll(async () => {
   console.log(`\n Running test...`);
@@ -22,19 +26,22 @@ beforeEach(async () => {
 
 describe('IPFS upload service', function(){
 
-  test('Upload text buffer to IPFS', async () => {
+  // Uploads may need to be repeated in order to succeed,
+  // so give this test up to 10 minutes to succeed.
+  const ZIP_UPLOAD_TIMEOUT_MS = 10 * 60 * 1000;
+  test('Upload zip directory to IPFS', async () => {
     try {
-      const {hash, path, size, error, errorObject } = await ipfs.create(dummyContent)
+      const testStream = fs.createReadStream(zipPath);
+      const {hash, path, size, error, errorObject } = await ipfs.create(testStream)
       console.log("\t IPFS content hash: "+hash);
       expect(hash).toBeTruthy()
-      expect(path).toBeTruthy()
       expect(size).toBeTruthy()
       expect(error).toBeUndefined()
       expect(errorObject).toBeUndefined()
     } catch (err) {
       console.log(err);
     }
-  })
+  }, ZIP_UPLOAD_TIMEOUT_MS)
 
   test('Check if text buffer is available', async () => {
     

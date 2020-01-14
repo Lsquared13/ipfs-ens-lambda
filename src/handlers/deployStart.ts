@@ -4,6 +4,7 @@ import { APIGatewayEvent } from '@eximchain/api-types/spec/events';
 import { S3, DynamoDB, CodePipeline } from '../services';
 import { userErrorResponse, unexpectedErrorResponse, successResponse, HttpMethods } from '@eximchain/api-types/spec/responses';
 import { ReadDeployment, CreateDeployment, ListDeployments } from '@eximchain/ipfs-ens-types/spec/methods/private';
+import { ensRootDomain } from '../env';
 
 const DeployProxyApi = async (event: APIGatewayEvent) => {
   console.log("DeployStart request: " + JSON.stringify(event));
@@ -11,7 +12,6 @@ const DeployProxyApi = async (event: APIGatewayEvent) => {
   if (method === 'OPTIONS') return successResponse({});
   const user: GitTypes.User = JSON.parse(event.requestContext.authorizer.githubUserInfo)
   const username = user.login;
-  let result;
   try {
     switch (method) {
       case 'POST':
@@ -31,11 +31,9 @@ const DeployProxyApi = async (event: APIGatewayEvent) => {
           let listRes:ListDeployments.Result = await listDeploys(username)
           return successResponse(listRes);
         }
-        break;
       default:
         return userErrorResponse({ message: `Unrecognized HTTP method: ${method}` })
     }
-    return successResponse(result);
   } catch (err) {
     return unexpectedErrorResponse(err);
   }
@@ -48,7 +46,7 @@ async function createDeploy(args: any, oauthToken: string, username: string):Pro
   const pipelineName = `ipfs-ens-builder-${deploymentSuffix}`;
   const newItem = await DynamoDB.initDeployItem(args, username, pipelineName);
   const createdPipeline = await CodePipeline.createDeploy(ensName, pipelineName, packageDir, buildDir, oauthToken, owner, repo, branch)
-  return { message: 'We successfully created your new deployment!  Read it for more details.' };
+  return { message: `We successfully began your new deployment to ${ensName}.${ensRootDomain}.eth!  Please run "deployer read ${ensName}" for more details.` };
 }
 
 /**
