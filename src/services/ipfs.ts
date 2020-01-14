@@ -82,8 +82,13 @@ interface ipfsReadResponse {
  */
 async function ipfsRead(hash: string): Promise<ipfsReadResponse> {
   try {
-    const results = await ipfsClient.cat(`/ipfs/${hash}`, { offset: 0, length: 2 })
+    // Each character in a JS string is a 16-bit integer, so to grab
+    // the first character of a file, we want to get the first 2 bytes.
+    // https://stackoverflow.com/questions/2219526/how-many-bytes-in-a-javascript-string/46735247#46735247
+    const JS_CHAR_SIZE_IN_BYTES = 2;
+    const results = await ipfsClient.cat(`/ipfs/${hash}`, { offset: 0, length: JS_CHAR_SIZE_IN_BYTES });
     const cat = results.toString();
+    // Any non-empty string is truthy.
     const exists = cat ? true : false;
     return {
       cat: cat,
