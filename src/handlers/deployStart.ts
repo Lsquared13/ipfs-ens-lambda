@@ -1,5 +1,5 @@
 import uuid from 'uuid/v4';
-import { isDeployArgs, newDeployArgs, GitTypes } from '@eximchain/ipfs-ens-types/spec/deployment';
+import { DeployArgs, isDeployArgs, newDeployArgs, GitTypes } from '@eximchain/ipfs-ens-types/spec/deployment';
 import { APIGatewayEvent } from '@eximchain/api-types/spec/events';
 import { S3, DynamoDB, CodePipeline } from '../services';
 import { userErrorResponse, unexpectedErrorResponse, successResponse, HttpMethods } from '@eximchain/api-types/spec/responses';
@@ -40,7 +40,7 @@ const DeployProxyApi = async (event: APIGatewayEvent) => {
 
 }
 
-async function createDeploy(args: any, oauthToken: string, username: string):Promise<CreateDeployment.Result> {
+async function createDeploy(args: DeployArgs, oauthToken: string, username: string):Promise<CreateDeployment.Result> {
   const { ensName, packageDir, buildDir, owner, repo, branch } = args;
   const deploymentSuffix = uuid();
   const pipelineName = `ipfs-ens-builder-${deploymentSuffix}`;
