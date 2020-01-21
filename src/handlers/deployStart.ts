@@ -41,11 +41,11 @@ const DeployProxyApi = async (event: APIGatewayEvent) => {
 }
 
 async function createDeploy(args: DeployArgs, oauthToken: string, username: string):Promise<CreateDeployment.Result> {
-  const { ensName, packageDir, buildDir, owner, repo, branch } = args;
+  const { ensName, packageDir, buildDir, owner, repo, branch, envVars = {} } = args;
   const deploymentSuffix = uuid();
   const pipelineName = `ipfs-ens-builder-${deploymentSuffix}`;
   const newItem = await DynamoDB.initDeployItem(args, username, pipelineName);
-  const createdPipeline = await CodePipeline.createDeploy(ensName, pipelineName, packageDir, buildDir, oauthToken, owner, repo, branch)
+  const createdPipeline = await CodePipeline.createDeploy(ensName, pipelineName, packageDir, buildDir, oauthToken, owner, repo, branch, envVars)
   return { message: `We successfully began your new deployment to ${ensName}.${ensRootDomain}.eth!  Please run "deployer read ${ensName}" for more details.` };
 }
 
