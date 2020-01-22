@@ -83,6 +83,9 @@ async function handleTxTransitions(transitionConfig:TxTransitionConfig) {
   const { ensName } = item;
   const transition = item.transitions[stage];
   const transitionFxn = EnsTransitionFxns[stage];
+  // TODO: Check how long we've been trying to make this work.
+  // If we've been retrying for more than CONSTANT hours, then
+  // just bail and mark the transitionErr as having timed out.
   if (!transition) {
     const chainNonce = await getTxnCount();
     const savedNonce = await DynamoDB.getNextNonceEthereum();
