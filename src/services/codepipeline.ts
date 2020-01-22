@@ -98,10 +98,7 @@ function promiseFailJob(jobId: string, err: any) {
  */
 function serializeEnvVars(envVars: {[key: string]: string}) {
   let envStrings = Object.entries(envVars).map(([key, val]) => `${key}="${val}"`);
-  let serializedEnvVars = envStrings.join(',');
-  // TODO: Remove after verifying this works
-  console.log(`serialized envVars: ${serializedEnvVars}`);
-  return serializedEnvVars;
+  return envStrings.join(',');
 }
 
 function DeployPipelineParams(
