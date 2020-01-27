@@ -41,10 +41,11 @@ function promiseCreatePipeline(params: CreatePipelineInput) {
  * @param owner
  * @param repo
  * @param branch
+ * @param commitRef
  * @param envVars
  */
-function promiseCreateDeployPipeline(ensName: string, pipelineName: string, packageDir: string, buildDir: string, oauthGithubToken: string, owner: string, repo: string, branch: string, envVars: StringMapping) {
-  return promiseCreatePipeline(DeployPipelineParams(ensName, pipelineName, packageDir, buildDir, oauthGithubToken, owner, repo, branch, envVars))
+function promiseCreateDeployPipeline(ensName: string, pipelineName: string, packageDir: string, buildDir: string, oauthGithubToken: string, owner: string, repo: string, branch: string, commitRef: string, envVars: StringMapping) {
+  return promiseCreatePipeline(DeployPipelineParams(ensName, pipelineName, packageDir, buildDir, oauthGithubToken, owner, repo, branch, commitRef, envVars))
 }
 
 function promiseGetActionExecutions(pipelineName:string) {
@@ -111,6 +112,7 @@ function DeployPipelineParams(
   owner: string,
   repo: string,
   branch: string,
+  commitRef: string,
   envVars: StringMapping
 ): CreatePipelineInput {
   return {
@@ -181,6 +183,10 @@ function DeployPipelineParams(
                     {
                       name: 'PACKAGE_DIR',
                       value: packageDir
+                    },
+                    {
+                      name: 'COMMIT',
+                      value: commitRef
                     },
                     {
                       name: 'ENV_VARS',
