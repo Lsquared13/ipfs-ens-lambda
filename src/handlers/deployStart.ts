@@ -1,7 +1,7 @@
 import uuid from 'uuid/v4';
 import { DeployArgs, isDeployArgs, newDeployArgs, GitTypes } from '@eximchain/ipfs-ens-types/spec/deployment';
 import { APIGatewayEvent } from '@eximchain/api-types/spec/events';
-import { S3, DynamoDB, CodePipeline } from '../services';
+import { S3, DynamoDB, CodePipeline, makeUserGitHub } from '../services';
 import { userErrorResponse, unexpectedErrorResponse, successResponse, HttpMethods } from '@eximchain/api-types/spec/responses';
 import { ReadDeployment, CreateDeployment, ListDeployments } from '@eximchain/ipfs-ens-types/spec/methods/private';
 import { ensRootDomain } from '../env';
@@ -44,9 +44,25 @@ async function createDeploy(args: DeployArgs, oauthToken: string, username: stri
   const { ensName, packageDir, buildDir, owner, repo, branch, envVars = {} } = args;
   const deploymentSuffix = uuid();
   const pipelineName = `ipfs-ens-builder-${deploymentSuffix}`;
+  // TODO: Pin pipeline to specific ref
+  const ref = getBranchRef(oauthToken, owner, repo, branch);
   const newItem = await DynamoDB.initDeployItem(args, username, pipelineName);
   const createdPipeline = await CodePipeline.createDeploy(ensName, pipelineName, packageDir, buildDir, oauthToken, owner, repo, branch, envVars)
   return { message: `We successfully began your new deployment to ${ensName}.${ensRootDomain}.eth!  Please run "deployer read ${ensName}" for more details.` };
+}
+
+/**
+ * @param oauthToken
+ * @param owner
+ * @param repo
+ * @param branchNAme
+ */
+async function getBranchRef(oauthToken: string, owner: string, repo: string, branch: string): Promise<string> {
+  // TODO: Full implementation
+  const GitHub = makeUserGitHub(oauthToken);
+  let branchRes = GitHub.repos.getBranch({owner, repo, branch});
+  console.log(`Branch Result: ${branchRes}`)
+  return '';
 }
 
 /**
