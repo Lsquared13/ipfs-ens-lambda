@@ -4,18 +4,19 @@ const { addAwsPromiseRetries } = require('../common');
 
 const sqs = new AWS.SQS({apiVersion: '2012-11-05'});
 
-function promiseSendMessage(method:string, body:string) {
+function promiseSendMessage(ensName: string, delaySeconds?: number) {
     let maxRetries = 5;
     let params:SendMessageRequest = {
         QueueUrl: sqsQueue as string,
-        MessageBody: body,
+        MessageBody: ensName,
         MessageAttributes: {
-            Method: {
+            EnsName: {
                 DataType: 'String',
-                StringValue: method
+                StringValue: ensName
             }
         }
     };
+    if (delaySeconds) params.DelaySeconds = delaySeconds;
     return addAwsPromiseRetries(() => sqs.sendMessage(params).promise(), maxRetries);
 }
 

@@ -25,20 +25,15 @@ const DeployIpfs = async (event: CodePipelineEvent) => {
         const {hash, size} = result;
         logSuccess("IPFS UPLOAD", hash);
         if(hash && size){
-            //NOTE: SEND SSQS MESSAGE TO START ENS TRANSACTION CHAIN, KEYED BY ENS NAME TO FETCH DDB state
-            let sqsMessageBody = {
-                //TODO: extract out magic to types
-                Method : "DeployEns",
-                EnsName : EnsName
-              }
-            await SQS.sendMessage("DeployEns", JSON.stringify(sqsMessageBody));
             await DynamoDB.addIpfsTransition(EnsName, hash);
+            await SQS.sendMessage(EnsName);
             return await CodePipeline.completeJob(id);
+        } else {
+            console.log('IPFS Pin provided no response.');
+            console.log('hash: ',hash);
+            console.log('size: ',size);
+            throw new Error('did not recieve response from ipfs add with pin, try again later could be Infura');
         }
-        console.log('IPFS Pin provided no response.');
-        console.log('hash: ',hash);
-        console.log('size: ',size);
-        throw new Error('did not recieve response from ipfs add with pin, try again later could be Infura');
     } catch (err) {
         //TODO: Write failures to a retry queue?
         console.log('Error on deployIPFS: ',err);

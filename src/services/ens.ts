@@ -1,7 +1,8 @@
 // @ts-ignore No types available yet for ethereum-ens
-import ENS from 'ethereum-ens';
+import ENSFactory from 'ethereum-ens';
+import { TransactionReceipt } from 'web3-core';
 import { web3Provider, web3 } from './web3';
-import { defaultGasPrice} from '../env';
+import { defaultGasPrice, ensRootDomain } from '../env';
 import { AbiType, StateMutabilityType } from 'web3-utils';
 
 
@@ -32,16 +33,20 @@ const RESOLVER_ABI =  [
 ]
 
 // prepare contract instances
-const ensLib = new ENS(web3Provider);
+const ensLib = new ENSFactory(web3Provider);
 
 //TODO: fetch gas price from eth gas station fall back on default
 let ethGasEstimate;
-// @ts-ignore Typescript doesn't know that these defaults can be set as a partial
+
 var ensResolver = new web3.eth.Contract(RESOLVER_ABI, PUBLIC_ENS_RESOLVER_ADDR, {
   from: ethAddress, // default from address
   gasPrice: ethGasEstimate? ethGasEstimate: defaultGasPrice // default gas price in wei, 20 gwei in this case
 });
 
+
+export async function nonceOnChain(): Promise<number> {
+  return await web3.eth.getTransactionCount(ethAddress);
+}
 
 export async function getBlockNumber(){
   try{
@@ -51,24 +56,23 @@ export async function getBlockNumber(){
     return false
   }
 }
-//Not implemented yet
+
 export async function isNameAvailable(name:string) {
+  const domain = `${name}.${ensRootDomain}.eth`
   try {
-    //Register the subdomain and assign the root domain address as owner to allow us to manage
-    const domain = `${name}.eth`
     const resolver = await ensLib.resolver(domain);
     const result = await resolver.addr();
-    
     return result;
     
   } catch(error) {
-    //TODO: ONLY THROW ON NETWORK ERRORS, if fails because DNE return false
-    throw Error(`Error performing subdomain resolution(): ${error}`)
-
+    if (error instanceof ENSFactory.NameNotFound) {
+      return false;
+    } else {
+      console.log(`Error resolving domain ${domain}: `,error);
+      throw error;
+    }
   }
-
 }
-
 
 /**
  * setSubnodeOwner sets the owner of the specified name. The calling account
@@ -80,10 +84,12 @@ export async function isNameAvailable(name:string) {
  * @param {object} [options= {from: ethAddress}] An optional dict of parameters to pass to web3 defaults as { from: accounts[0] }
  * @returns A promise returning the transaction ID of the transaction, once mined.
  */
-export async function makeSubDomain(name:string) {
+export async function makeSubDomain(name:string, nonce:number) {
   try {
     //Register the subdomain and assign the root domain address as owner to allow us to manage
-    const result = await ensLib.setSubnodeOwner(`${name}.deploy.eth`, ethAddress, {from: ethAddress});
+    const result = await ensLib.setSubnodeOwner(`${name}.${ensRootDomain}.eth`, ethAddress, {
+      nonce, from: ethAddress,
+    });
       
     console.log(`\tSuccessfully set subdomain resolver. Transaction hash: ${result.tx}.`)
     return result;
@@ -104,13 +110,13 @@ export async function makeSubDomain(name:string) {
  * @param {object}  [options= {from: ethAddress}] An optional dict of parameters to pass to web3. defaults as { from: accounts[0] }
  * @returns A promise that returns the transaction ID when the transaction is mined.
  */
-export async function attachSubDomainResolver(name:string) {
+export async function attachSubDomainResolver(name:string, nonce:number) {
   try {
     // console.log(    web3.eth.personal.unlockAccount(ethAddress,"",1000))
     //Get resolver for root domain
     const resolver = await ensLib.resolver('resolver.eth').addr();
     //Set the subdomain resolver to the same
-    const result = await ensLib.setResolver(name, resolver, {from: ethAddress});
+    const result = await ensLib.setResolver(name, resolver, {nonce, from: ethAddress});
     
     console.log(`\tSuccessfully set subdomain resolver. Transaction hash: ${result.tx}.`)
     return result;
@@ -129,23 +135,23 @@ export async function attachSubDomainResolver(name:string) {
  * @param {string} name subdomain
  * @param {string} ipfsHash looks like 'QmRAQB6YaCyidP37UdDnjFY5vQuiBrcqdyoW1CuDgwxkD4' ommit prefix
  */
-export async function addIpfsToResolver(name:string, ipfsHash: string) {
+export async function addIpfsToResolver(name:string, ipfsHash: string, nonce:number) {
   // Calculate the name hash & the encoded content hash
-  let node = ensLib.namehash.hash(`${name}.deploy.eth`); 
+  let node = ensLib.namehash.hash(`${name}.${ensRootDomain}.eth`); 
   const hash = ensLib.contentHash.fromIpfs(ipfsHash);
 
   try {
-    let result = await ensResolver.methods.setContenthash(node, hash, {from: ethAddress})
-    console.log(`\tSuccessfully stored new contentHash. Transaction hash: ${result.tx}.`)
-
+    let result:TransactionReceipt = await ensResolver.methods.setContenthash(node, hash, {nonce, from: ethAddress})
+    console.log('setContenthash receipt: ',result);
+    console.log(`\tSuccessfully stored new contentHash. Transaction hash: ${result.transactionHash}.`)
+    return result.transactionHash;
   } catch(error) {
     throw Error(`Error performing setContenthash(): ${error}`)
-
   }
   
 }
 
-const ens = {
+export const ENS = {
   getBlockNumber         : getBlockNumber,
   isNameAvailable        : isNameAvailable,
   makeSubDomain          : makeSubDomain,
@@ -153,8 +159,6 @@ const ens = {
   addIpfsToResolver      : addIpfsToResolver,
   ensResolverContract    : ensResolver,
   ensContract            : {} 
-
-
 }
 
-export default ens;
+export default ENS;
