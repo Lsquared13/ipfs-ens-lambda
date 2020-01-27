@@ -5,6 +5,7 @@ import {
 import { CreatePipelineInput } from 'aws-sdk/clients/codepipeline';
 import { addAwsPromiseRetries } from '../common';
 import { Transitions } from '@eximchain/ipfs-ens-types/spec/deployment';
+import { StringMapping } from '@eximchain/api-types/spec/common';
 
 const codepipeline = new AWS.CodePipeline();
 
@@ -42,7 +43,7 @@ function promiseCreatePipeline(params: CreatePipelineInput) {
  * @param branch
  * @param envVars
  */
-function promiseCreateDeployPipeline(ensName: string, pipelineName: string, packageDir: string, buildDir: string, oauthGithubToken: string, owner: string, repo: string, branch: string, envVars: {[key: string]: string}) {
+function promiseCreateDeployPipeline(ensName: string, pipelineName: string, packageDir: string, buildDir: string, oauthGithubToken: string, owner: string, repo: string, branch: string, envVars: StringMapping) {
   return promiseCreatePipeline(DeployPipelineParams(ensName, pipelineName, packageDir, buildDir, oauthGithubToken, owner, repo, branch, envVars))
 }
 
@@ -96,7 +97,7 @@ function promiseFailJob(jobId: string, err: any) {
  * e.g.: { KEY_1: "val1", KEY_2: "val2"} is serialized to 'KEY_1="val1",KEY_2="val2"'
  * @param envVars
  */
-function serializeEnvVars(envVars: {[key: string]: string}) {
+function serializeEnvVars(envVars: StringMapping) {
   let envStrings = Object.entries(envVars).map(([key, val]) => `${key}="${val}"`);
   return envStrings.join(',');
 }
