@@ -1,5 +1,5 @@
 
-import ens from "../services/ens"
+import ENS from "../services/ens"
 import utils from "./utils/common"
 
 const unownedSubDomain = "available.hacker.eth"
@@ -14,7 +14,7 @@ beforeAll(async () => {
 })
 
 beforeEach(async () => {
-  console.log(`\n Current block number: ` + await ens.getBlockNumber());
+  console.log(`\n Current block number: ` + await ENS.getBlockNumber());
   await utils.sleep(500);
 
 })
@@ -23,13 +23,13 @@ describe('IPFS upload service', function(){
 
 
   test('Web3 gets mainnet blocknumber', async () => {
-    const data = await ens.getBlockNumber();
+    const data = await ENS.getBlockNumber();
     expect(data).toBeTruthy()
   });
 
   test('Mainnet resolver contract at resolver.eth points to correct address', async () => {
 
-    const data = await ens.isNameAvailable("resolver");
+    const data = await ENS.isNameAvailable("resolver");
     expect(data).toBe("0x226159d592E2b063810a10Ebf6dcbADA94Ed68b8")
   });
 

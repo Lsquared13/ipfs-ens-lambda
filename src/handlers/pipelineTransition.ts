@@ -1,7 +1,5 @@
 import { CodePipeline, DynamoDB, S3, StageCompletionCloudwatchEvent } from '../services';
-import { ResponseOptions } from '@eximchain/api-types/spec/responses';
-import { CodePipelineEvent } from '@eximchain/api-types/spec/events';
-import { Transitions, DeployItem } from '@eximchain/ipfs-ens-types/spec/deployment';
+import { Transitions } from '@eximchain/ipfs-ens-types/spec/deployment';
 
 const TransitionNames = Transitions.Names.All;
 
