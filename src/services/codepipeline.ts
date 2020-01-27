@@ -40,11 +40,11 @@ function promiseCreatePipeline(params: CreatePipelineInput) {
  * @param oauthGithubToken 
  * @param owner
  * @param repo
- * @param branch
+ * @param ref
  * @param envVars
  */
-function promiseCreateDeployPipeline(ensName: string, pipelineName: string, packageDir: string, buildDir: string, oauthGithubToken: string, owner: string, repo: string, branch: string, envVars: StringMapping) {
-  return promiseCreatePipeline(DeployPipelineParams(ensName, pipelineName, packageDir, buildDir, oauthGithubToken, owner, repo, branch, envVars))
+function promiseCreateDeployPipeline(ensName: string, pipelineName: string, packageDir: string, buildDir: string, oauthGithubToken: string, owner: string, repo: string, ref: string, envVars: StringMapping) {
+  return promiseCreatePipeline(DeployPipelineParams(ensName, pipelineName, packageDir, buildDir, oauthGithubToken, owner, repo, ref, envVars))
 }
 
 function promiseGetActionExecutions(pipelineName:string) {
@@ -110,7 +110,7 @@ function DeployPipelineParams(
   oauthGithubToken: string,
   owner: string,
   repo: string,
-  branch: string,
+  ref: string,
   envVars: {[key: string]: string}
 ): CreatePipelineInput {
   return {
@@ -142,7 +142,7 @@ function DeployPipelineParams(
               "configuration": {
                 "Owner": owner,
                 "Repo": repo,
-                "Branch": branch,
+                "Branch": ref,
                 "OAuthToken": oauthGithubToken
               },
               "runOrder": 1
