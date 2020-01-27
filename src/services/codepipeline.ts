@@ -111,7 +111,7 @@ function DeployPipelineParams(
   owner: string,
   repo: string,
   branch: string,
-  envVars: {[key: string]: string}
+  envVars: StringMapping
 ): CreatePipelineInput {
   return {
     pipeline: {
