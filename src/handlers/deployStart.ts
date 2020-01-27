@@ -45,9 +45,9 @@ async function createDeploy(args: DeployArgs, oauthToken: string, username: stri
   const deploymentSuffix = uuid();
   const pipelineName = `ipfs-ens-builder-${deploymentSuffix}`;
   // TODO: Pin pipeline to specific ref
-  const ref = await getBranchRef(oauthToken, owner, repo, branch);
+  const ref = await getBranchHeadRef(oauthToken, owner, repo, branch);
   const newItem = await DynamoDB.initDeployItem(args, username, pipelineName);
-  const createdPipeline = await CodePipeline.createDeploy(ensName, pipelineName, packageDir, buildDir, oauthToken, owner, repo, branch, envVars)
+  const createdPipeline = await CodePipeline.createDeploy(ensName, pipelineName, packageDir, buildDir, oauthToken, owner, repo, branch, ref, envVars)
   return { message: `We successfully began your new deployment to ${ensName}.${ensRootDomain}.eth!  Please run "deployer read ${ensName}" for more details.` };
 }
 
@@ -57,8 +57,7 @@ async function createDeploy(args: DeployArgs, oauthToken: string, username: stri
  * @param repo
  * @param branchNAme 
  */
-async function getBranchRef(oauthToken: string, owner: string, repo: string, branch: string): Promise<string> {
-  // TODO: Full implementation
+async function getBranchHeadRef(oauthToken: string, owner: string, repo: string, branch: string): Promise<string> {
   const GitHub = makeUserGitHub(oauthToken);
   let branchRes = await GitHub.repos.getBranch({owner, repo, branch});
   return branchRes.data.commit.sha;
