@@ -40,9 +40,10 @@ function promiseCreatePipeline(params: CreatePipelineInput) {
  * @param owner
  * @param repo
  * @param branch
+ * @param envVars
  */
-function promiseCreateDeployPipeline(ensName: string, pipelineName: string, packageDir: string, buildDir: string, oauthGithubToken: string, owner: string, repo: string, branch: string) {
-  return promiseCreatePipeline(DeployPipelineParams(ensName, pipelineName, packageDir, buildDir, oauthGithubToken, owner, repo, branch))
+function promiseCreateDeployPipeline(ensName: string, pipelineName: string, packageDir: string, buildDir: string, oauthGithubToken: string, owner: string, repo: string, branch: string, envVars: {[key: string]: string}) {
+  return promiseCreatePipeline(DeployPipelineParams(ensName, pipelineName, packageDir, buildDir, oauthGithubToken, owner, repo, branch, envVars))
 }
 
 function promiseGetActionExecutions(pipelineName:string) {
@@ -89,6 +90,17 @@ function promiseFailJob(jobId: string, err: any) {
   return addAwsPromiseRetries(() => codepipeline.putJobFailureResult(params).promise(), maxRetries);
 }
 
+/**
+ * Accepts a flat mapping of env vars and converts it to a comma separated string of lines formatted for a .env file.
+ * 
+ * e.g.: { KEY_1: "val1", KEY_2: "val2"} is serialized to 'KEY_1="val1",KEY_2="val2"'
+ * @param envVars
+ */
+function serializeEnvVars(envVars: {[key: string]: string}) {
+  let envStrings = Object.entries(envVars).map(([key, val]) => `${key}="${val}"`);
+  return envStrings.join(',');
+}
+
 function DeployPipelineParams(
   ensName: string,
   pipelineName: string,
@@ -97,7 +109,8 @@ function DeployPipelineParams(
   oauthGithubToken: string,
   owner: string,
   repo: string,
-  branch: string
+  branch: string,
+  envVars: {[key: string]: string}
 ): CreatePipelineInput {
   return {
     pipeline: {
@@ -167,6 +180,10 @@ function DeployPipelineParams(
                     {
                       name: 'PACKAGE_DIR',
                       value: packageDir
+                    },
+                    {
+                      name: 'ENV_VARS',
+                      value: serializeEnvVars(envVars)
                     }
                   ]
                 )
