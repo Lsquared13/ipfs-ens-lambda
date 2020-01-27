@@ -61,7 +61,7 @@ async function getBranchRef(oauthToken: string, owner: string, repo: string, bra
   // TODO: Full implementation
   const GitHub = makeUserGitHub(oauthToken);
   let branchRes = await GitHub.repos.getBranch({owner, repo, branch});
-  console.log(`Branch Result: ${branchRes}`)
+  console.log(`Branch Result: ${JSON.stringify(branchRes)}`)
   return '';
 }
 
