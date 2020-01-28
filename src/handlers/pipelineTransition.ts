@@ -64,6 +64,7 @@ const PipelineTransition = async (event: StageCompletionCloudwatchEvent) => {
         await DynamoDB.addSourceTransition(EnsName, artifactSize)
     } else {
         await DynamoDB.addBuildTransition(EnsName, artifactSize);
+        await CodePipeline.delete(pipelineName);
     }
     return;
 }
