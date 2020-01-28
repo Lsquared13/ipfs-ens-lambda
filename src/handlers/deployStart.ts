@@ -55,7 +55,7 @@ async function createDeploy(args: DeployArgs, oauthToken: string, username: stri
  * @param oauthToken
  * @param owner
  * @param repo
- * @param branchNAme
+ * @param branch
  */
 async function getBranchHeadRef(oauthToken: string, owner: string, repo: string, branch: string): Promise<string> {
   const GitHub = makeUserGitHub(oauthToken);
